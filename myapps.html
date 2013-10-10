@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+	<title>OpenAM (Login)</title>
+	<link href="/openam/css/new_style.css" rel="stylesheet"
+		type="text/css" />
+	 <script language="JavaScript" type="text/javascript">
+                 
+	 function sendTo(navURL) {
+		 if(navURL!=""){  
+			 document.getElementById('spinner').style.display = 'block';                  
+			   window.location.href = navURL;
+			}
+     }
+</script>
+	</head>
+	<body >
+	<div id="spinner" class="spinner" style="display:none;width:100%;height: 100%;position: fixed;z-index: 10000;background-color: #fff;opacity:0.5;">
+		<img src="/openam/images/download.jpg" alt="Loading....." style="position: absolute;margin: auto;left:0;right: 0;top: 0;bottom: 0;z-index:10001;"/>
+	</div>
+	<div class="container_12">
+	<div class="grid_4 suffix_8"><a class="logo"
+		href="/openam"></a></div>
+	<div class="box clear-float">
+	<div class="grid_3">
+	<div class="product-logo"></div>
+	</div>
+	<div class="grid_9 left-seperator">
+	<div class="box-content clear-float">
+		<h1>Sign in Using Toopher</h1>
+		<form   name="Login"  action="#"  method="post">
+					<div class="row"><label
+						for="IDToken1">  Google Apps </label>  <input name="Login.Submit" type="submit"
+						onclick="sendTo('http://demo.oneappcloud.com:8082/openam/UI/Login?service=toopherAuth'); return false;"
+						class="button primary" value="Log In" />
+					</div>
+					<div class="row"><label
+						for="IDToken2">  SalesForce   </label> <input name="Login.Submit" type="submit"
+						onclick="sendTo('http://demo.oneappcloud.com:8082/openam/UI/Login?service=toopherSF'); return false;"
+						class="button primary" value="Log In" />
+					</div>
+				<fieldset> 
+				</fieldset>
+			</form>
+	</div>
+	</div>
+	</div>
+	<div class="footer alt-color">
+	<div class="grid_6 suffix_3">
+	</div>
+	</div>
+	</div>
+	</body>
+
+</html>
