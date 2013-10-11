@@ -25,7 +25,7 @@ final public class UserManager extends LDAPConnect {
 	 * @return
 	 */
 	final public boolean validateUser(String uid, String password) {
-		System.err.println(uid+""+password);
+		System.err.println(uid + "" + password);
 		DirContext ctx = null;
 		NamingEnumeration enm = null;
 		try {
@@ -42,8 +42,10 @@ final public class UserManager extends LDAPConnect {
 					+ ne.getMessage());
 		} finally {
 			try {
-				enm.close();
-				ctx.close();
+				if (enm != null)
+					enm.close();
+				if (ctx != null)
+					ctx.close();
 			} catch (Exception e) {
 				ToopherUseage
 						.toopherPrintln("Error in finally UserManager.validateUser:--"
@@ -53,27 +55,27 @@ final public class UserManager extends LDAPConnect {
 		return false;
 	}
 
-	public boolean addOrUpdatePairing(String uid, String pairingId) {
+	public boolean addPairing(String uid, String pairingId,
+			String toopherPairingRecoveryQuestion,
+			String toopherPairingRecoveryAnswer) {
 		try {
 			DirContext ctx = new InitialDirContext(credentialLDAP());
-			if (findPairingByUID(uid) == null) {
-				Attributes userAttributes = new BasicAttributes(true);
-				BasicAttribute basicattribute = new BasicAttribute(
-						"objectclass", "toopherPair");
-				basicattribute.add(1, "top");
-				userAttributes.put(basicattribute);
-				userAttributes.put(new BasicAttribute("cn", "pairingid"));
-				userAttributes.put(new BasicAttribute("toopherPairingId",
-						pairingId));
-				ctx.createSubcontext("cn=pairingid,uid=" + uid + ","
-						+ userBaseDir, userAttributes);
-			} else {
-				ModificationItem[] mods = new ModificationItem[1];
-				mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE,
-						new BasicAttribute("toopherPairingId", pairingId));
-				ctx.modifyAttributes("cn=pairingid,uid=" + uid + ","
-						+ userBaseDir, mods);
-			}
+			Attributes userAttributes = new BasicAttributes(true);
+			BasicAttribute basicattribute = new BasicAttribute("objectclass",
+					"toopherPair");
+			basicattribute.add(1, "top");
+			userAttributes.put(basicattribute);
+			userAttributes.put(new BasicAttribute("cn", "pairingid"));
+			userAttributes
+					.put(new BasicAttribute("toopherPairingId", pairingId));
+			userAttributes.put(new BasicAttribute(
+					"toopherPairingRecoveryQuestion",
+					toopherPairingRecoveryQuestion));
+			userAttributes.put(new BasicAttribute(
+					"toopherPairingRecoveryAnswer",
+					toopherPairingRecoveryAnswer));
+			ctx.createSubcontext("cn=pairingid,uid=" + uid + "," + userBaseDir,
+					userAttributes);
 			ctx.close();
 			return true;
 		} catch (NamingException e) {
@@ -171,4 +173,76 @@ final public class UserManager extends LDAPConnect {
 		return null;
 	}
 
+	public String findPairingRecoveryQuestion(String uid) {
+		try {
+			ToopherUseage.toopherPrintln("uid");
+			Attributes attributes = search("uid=" + uid + "," + userBaseDir,
+					"(&(objectClass=toopherPair)(cn=pairingid))",
+					new String[] { "toopherPairingRecoveryQuestion" });
+			if (attributes != null
+					&& attributes.get("toopherPairingRecoveryQuestion") != null) {
+				Attribute attribute = attributes
+						.get("toopherPairingRecoveryQuestion");
+				return (String) attribute.get(0);
+			}
+
+		} catch (NamingException e) {
+			ToopherUseage
+					.toopherPrintln("Error in UserManager.findPairingByUID:--"
+							+ e.getMessage());
+		}
+		return null;
+	}
+
+	public String pairingRecoveryQuestion(String uid) {
+		try {
+			Attributes attributes = search("uid=" + uid + "," + userBaseDir,
+					"(&(objectClass=toopherPair)(cn=pairingid))",
+					new String[] { "toopherPairingRecoveryQuestion" });
+			if (attributes != null
+					&& attributes.get("toopherPairingRecoveryQuestion") != null) {
+				Attribute attribute = attributes
+						.get("toopherPairingRecoveryQuestion");
+				return (String) attribute.get(0);
+			}
+
+		} catch (NamingException e) {
+			ToopherUseage
+					.toopherPrintln("Error in UserManager.pairingRecoveryQuestion:--"
+							+ e.getMessage());
+		}
+		return null;
+	}
+
+	public boolean recoverPairing(String uid, String anwser) {
+		try {
+			anwser = anwser != null ? anwser.toLowerCase().trim() : anwser;
+			Attributes attributes = search("uid=" + uid + "," + userBaseDir,
+					"(&(objectClass=toopherPair)(cn=pairingid))",
+					new String[] { "toopherPairingRecoveryAnswer" });
+			if (attributes != null
+					&& attributes.get("toopherPairingRecoveryAnswer") != null) {
+				Attribute attribute = attributes
+						.get("toopherPairingRecoveryAnswer");
+				String temp = (String) attribute.get(0);
+				temp = temp.trim().toLowerCase();
+				if (temp.equalsIgnoreCase(anwser)) {
+					deletePair(uid);
+					return true;
+				}
+			}
+
+		} catch (NamingException e) {
+			ToopherUseage
+					.toopherPrintln("Error in UserManager.recoverPairing:--"
+							+ e.getMessage());
+		}
+		return false;
+	}
+
+	private void deletePair(String uid) throws NamingException {
+		DirContext ctx = null;
+		ctx = new InitialDirContext(credentialLDAP());
+		ctx.unbind("cn=pairingid,uid=" + uid + "," + userBaseDir);
+	}
 }

@@ -10,24 +10,20 @@ import javax.security.auth.callback.NameCallback;
 import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.sun.identity.authentication.spi.AMLoginModule;
 import com.sun.identity.authentication.spi.AuthLoginException;
 import com.sun.identity.authentication.spi.InvalidPasswordException;
-import com.sun.identity.authentication.util.ISAuthConstants;
 import com.sun.identity.shared.datastruct.CollectionHelper;
 import com.sun.identity.shared.debug.Debug;
 import com.toopher.apacheds.connect.UserManager;
 import com.toopher.api.ToopherUseage;
 import com.toopher.config.Config;
 
-public class SampleAuthTwo extends AMLoginModule {
+public class PairingRecovery extends AMLoginModule {
 	// Name for the debug-log
-	private final static String DEBUG_NAME = "SampleAuthTwo";
+	private final static String DEBUG_NAME = "PairingRecovery";
 	// Name of the resource-bundle
-	private final static String amAuthSampleAuthTwo = "amAuthSampleAuthTwo";
+	private final static String amAuthPairingRecovery = "amAuthPairingRecovery";
 	// orders defined in the callbacks file
 	private String USERNAME = "-";
 	private final static int STATE_BEGIN = 1;
@@ -40,7 +36,7 @@ public class SampleAuthTwo extends AMLoginModule {
 	private ResourceBundle bundle;
 	private Map sharedState;
 
-	public SampleAuthTwo() {
+	public PairingRecovery() {
 		super();
 	}
 
@@ -49,23 +45,24 @@ public class SampleAuthTwo extends AMLoginModule {
 	// for later use
 	public void init(Subject subject, Map sharedState, Map options) {
 		if (debug.messageEnabled()) {
-			debug.message("SampleAuthTwo::init");
+			debug.message("PairingRecovery::init");
 		}
 		if (isUseFirstPassEnabled()) {
 			this.sharedState = sharedState;
 		}
 		this.options = options;
-		bundle = amCache.getResBundle(amAuthSampleAuthTwo, getLoginLocale());
+		ToopherUseage.toopherPrintln("-_-");
+		bundle = amCache.getResBundle(amAuthPairingRecovery, getLoginLocale());
 		ResourceBundle rb = amCache.getResBundle("toopherConfig",
 				getLoginLocale());
-		ToopherUseage.toopherPrintln(rb.getString("SECURITY_AUTHENTICATION"));
+		ToopherUseage.toopherPrintln("-----"+rb.getString("SECURITY_AUTHENTICATION"));
 		Config.getConfigFile(rb);
 	}
 
 	@Override
 	public int process(Callback[] callbacks, int state) throws LoginException {
 		if (debug.messageEnabled()) {
-			debug.message("SampleAuthTwo::process state: " + state);
+			debug.message("PairingRecovery::process state: " + state);
 		}
 		USERNAME = (String) sharedState.get(getUserKey());
 		System.out.println("====================================");
@@ -77,15 +74,19 @@ public class SampleAuthTwo extends AMLoginModule {
 			ToopherUseage.toopherPrintln("getHttpServletRequest is null");
 		}
 		UserManager userManager = new UserManager();
-		JSONObject data = null;
-		if (isUseFirstPassEnabled()) {
+		if (isUseFirstPassEnabled() ) {
 			try {
 				String name = (String) sharedState.get(getUserKey());
-				String pair = userManager.findPairingByUID(name);
+				if(userManager.findPairingByUID(name)!=null){
 				request.setAttribute("username", name);
 				request.setAttribute("isSecond", true);
 				request.setAttribute("OTPS", false);
-				request.setAttribute("haspairingId", pair != null);
+				request.setAttribute("isRecovery", false);
+				request.setAttribute("question", userManager.findPairingRecoveryQuestion(name));
+				request.setAttribute("haspairingId", true);
+				}else{
+					throw new InvalidPasswordException("No pairing for the user ", USERNAME);
+				}
 			} catch (Exception e) {
 			}
 		}
@@ -96,75 +97,22 @@ public class SampleAuthTwo extends AMLoginModule {
 			return STATE_AUTH;
 
 		case STATE_AUTH:
-			// NameCallback nc = (NameCallback) callbacks[0];
 			String username = (String) sharedState.get(getUserKey());
-			// PasswordCallback pc = (PasswordCallback) callbacks[1];
 			String password = request.getParameter("IDToken2");
 			ToopherUseage.toopherPrintln(password);
 			try {
 				if (username != null) {
-					String question = request.getParameter("question");
-					String answer = request.getParameter("answer");
-					String pairingId = userManager.findPairingByUID(username);
-					ToopherUseage toopherUseage = new ToopherUseage();
-					if (pairingId == null) {
-						ToopherUseage.toopherPrintln(password);
-						data = toopherUseage.toopherPairingVerification(
-								username, password);
-						if ((Boolean) data.get("flag")) {
-							request.setAttribute("haspairing", userManager
-									.addPairing(username,
-											(String) data.get("pairingId"),
-											question, answer));
-							throw new InvalidPasswordException(
-									"Device is paired",
-									Config.resourceConf
-											.getString("DEFAULT_TERMINAL"));
-						}
-					} else {
-						String _terminal = request.getParameter("terminalId");
-						ToopherUseage.toopherPrintln(_terminal);
-						String terminal = userManager.findTerminalByUID(
-								username, _terminal);
-						if (terminal != null)
-							password = terminal;
-						if (password == null || password.trim() == "")
-							password = Config.resourceConf
-									.getString("DEFAULT_TERMINAL");
-						if (_terminal.equals("OTP-RE")) {
-							data = toopherUseage.toopherUserAuth(_terminal,
-									_terminal,
-									userManager.findPairingByUID(username),
-									password);
-						} else {
-							data = toopherUseage.toopherUserAuth(password,
-									_terminal,
-									userManager.findPairingByUID(username),
-									null);
-							if (!_terminal.equals("OTP-RE")
-									&& !(Boolean) data.get("flag")
-									&& !(Boolean) data.get("deniedByUser")) {
-								request.setAttribute("OTPS", true);
-								substituteUIStrings();
-								return STATE_AUTH;
-							}
-						}
-						if (!_terminal.equals("OTP-RE") && terminal == null
-								&& (Boolean) data.get("flag")) {
-							userManager.addTerminalName(username, _terminal,
-									password);
-						}
+					String myAnswer=password;
+					ToopherUseage.toopherPrintln(password);
+					if(userManager.recoverPairing(username, myAnswer)){
+						request.setAttribute("removepairing", true) ;
+						throw new AuthLoginException( "Pairing removed");
 					}
-					if (data != null && (Boolean) data.get("flag")) {
-						return ISAuthConstants.LOGIN_SUCCEED;
-					} else
-						System.err.println("Not Done");
 				}
-				throw new InvalidPasswordException("Some Error occurred",
-						USERNAME);
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
+				throw new InvalidPasswordException("Some Error occurred", USERNAME);
+			} catch (Exception e) {
 				e.printStackTrace();
+				throw new InvalidPasswordException("Some Error occurred", USERNAME);
 			}
 		case STATE_ERROR:
 			return STATE_ERROR;
@@ -176,7 +124,7 @@ public class SampleAuthTwo extends AMLoginModule {
 
 	@Override
 	public Principal getPrincipal() {
-		return new SampleAuthPrincipalTwo(USERNAME);
+		return new PairingRecoveryPrincipal(USERNAME);
 	}
 
 	private void setErrorText(String err) throws AuthLoginException {
@@ -190,11 +138,11 @@ public class SampleAuthTwo extends AMLoginModule {
 	private void substituteUIStrings() throws AuthLoginException {
 		// Get service specific attribute configured in OpenAM
 		String ssa = CollectionHelper.getMapAttr(options,
-				"SampleAuthTwo-service-specific-attribute");
+				"PairingRecovery-service-specific-attribute");
 
 		// Get property from bundle
 		String new_hdr = ssa + " "
-				+ bundle.getString("SampleAuthTwo-ui-login-header");
+				+ bundle.getString("PairingRecovery-ui-login-header");
 		// substituteHeader(STATE_AUTH, new_hdr);
 		System.err.println("C-" + STATE_AUTH + " bundle:-" + new_hdr);
 		Callback[] cbs_phone = getCallback(STATE_AUTH);
@@ -203,7 +151,7 @@ public class SampleAuthTwo extends AMLoginModule {
 				STATE_AUTH,
 				0,
 				new NameCallback(bundle
-						.getString("SampleAuthTwo-ui-username-prompt")));
+						.getString("PairingRecovery-ui-username-prompt")));
 
 	}
 
