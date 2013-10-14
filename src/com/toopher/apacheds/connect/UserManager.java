@@ -25,7 +25,7 @@ final public class UserManager extends LDAPConnect {
 	 * @return
 	 */
 	final public boolean validateUser(String uid, String password) {
-		System.err.println(uid + "" + password);
+		System.err.println(uid + " " + password);
 		DirContext ctx = null;
 		NamingEnumeration enm = null;
 		try {
@@ -34,8 +34,11 @@ final public class UserManager extends LDAPConnect {
 			env.put(Context.SECURITY_PRINCIPAL, "uid=" + uid + ","
 					+ userBaseDir);
 			env.put(Context.SECURITY_CREDENTIALS, password);
+			ToopherUseage.toopherPrintln("final env is " + env.toString());
 			ctx = new InitialDirContext(env);
+			ToopherUseage.toopherPrintln("ctx is " + ctx.toString());
 			enm = ctx.list("");
+			ToopherUseage.toopherPrintln("enm is " + enm.toString());
 			return enm.hasMore();
 		} catch (NamingException ne) {
 			ToopherUseage.toopherPrintln("Error in UserManager.validateUser:--"
@@ -47,8 +50,7 @@ final public class UserManager extends LDAPConnect {
 				if (ctx != null)
 					ctx.close();
 			} catch (Exception e) {
-				ToopherUseage
-						.toopherPrintln("Error in finally UserManager.validateUser:--"
+				ToopherUseage.toopherPrintln("Finally error in finally UserManager.validateUser:--"
 								+ e.getMessage());
 			}
 		}

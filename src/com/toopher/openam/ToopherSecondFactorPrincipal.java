@@ -23,7 +23,7 @@
 *
 */
 
-package com.forgerock.openam.examples;
+package com.toopher.openam;
 
 import java.io.Serializable;
 import java.security.Principal;
@@ -32,12 +32,12 @@ import java.security.Principal;
 *
 * @author Steve Ferris steve.ferris@forgerock.com
 */
-public class SampleAuthPrincipal implements Principal, Serializable {
+public class ToopherSecondFactorPrincipal implements Principal, Serializable {
     private String name;
-    private final static String CLASSNAME = "SampleAuthPrincipal";
+    private final static String CLASSNAME = "ToopherSecondFactorPrincipal";
     private final static String COLON = " : ";
     
-    public SampleAuthPrincipal(String name) {
+    public ToopherSecondFactorPrincipal(String name) {
         if (name == null) {
             throw new NullPointerException("illegal null input");
         }
@@ -46,22 +46,22 @@ public class SampleAuthPrincipal implements Principal, Serializable {
     }
     
     /**
-    * Return the LDAP username for this &lt;code&gt; SampleAuthPrincipal &lt;/code&gt;.
+    * Return the LDAP username for this &lt;code&gt; ToopherSecondFactorPrincipal &lt;/code&gt;.
     *
     * <p>
     *
-    * @return the LDAP username for this &lt;code&gt; SampleAuthPrincipal &lt;/code&gt;
+    * @return the LDAP username for this &lt;code&gt; ToopherSecondFactorPrincipal &lt;/code&gt;
     */
     public String getName() {
         return name;
     }
     
     /**
-    * Return a string representation of this &lt;code&gt; SampleAuthPrincipal &lt;/code&gt;.
+    * Return a string representation of this &lt;code&gt; ToopherSecondFactorPrincipal &lt;/code&gt;.
     *
     * <p>
     *
-    * @return a string representation of this &lt;code&gt;TestAuthModulePrincipal&lt;/code&gt;.
+    * @return a string representation of this &lt;code&gt;ToopherSecondFactorPrincipal&lt;/code&gt;.
     */
     @Override
     public String toString() {
@@ -69,18 +69,18 @@ public class SampleAuthPrincipal implements Principal, Serializable {
     }
     
     /**
-    * Compares the specified Object with this &lt;code&gt; SampleAuthPrincipal &lt;/code&gt;
+    * Compares the specified Object with this &lt;code&gt; ToopherSecondFactorPrincipal &lt;/code&gt;
     * for equality.  Returns true if the given object is also a
-    * &lt;code&gt; SampleAuthPrincipal &lt;/code&gt; and the two SampleAuthPrincipal
+    * &lt;code&gt; ToopherSecondFactorPrincipal &lt;/code&gt; and the two ToopherSecondFactorPrincipal
     * have the same username.
     *
     * <p>
     *
     * @param o Object to be compared for equality with this
-    *      &lt;code&gt; SampleAuthPrincipal &lt;/code&gt;.
+    *      &lt;code&gt; ToopherSecondFactorPrincipal &lt;/code&gt;.
     *
     * @return true if the specified Object is equal equal to this
-    *      &lt;code&gt; SampleAuthPrincipal &lt;/code&gt;.
+    *      &lt;code&gt; ToopherSecondFactorPrincipal &lt;/code&gt;.
     */
     @Override
     public boolean equals(Object o) {
@@ -92,10 +92,10 @@ public class SampleAuthPrincipal implements Principal, Serializable {
             return true;
         }
         
-        if (!(o instanceof SampleAuthPrincipal)) {
+        if (!(o instanceof ToopherSecondFactorPrincipal)) {
             return false;
         }
-        SampleAuthPrincipal that = (SampleAuthPrincipal) o;
+        ToopherSecondFactorPrincipal that = (ToopherSecondFactorPrincipal) o;
         
         if (this.getName().equals(that.getName())) {
             return true;
@@ -104,7 +104,7 @@ public class SampleAuthPrincipal implements Principal, Serializable {
     }
     
     /**
-    * Return a hash code for this &lt;code&gt; SampleAuthPrincipal &lt;/code&gt;.
+    * Return a hash code for this &lt;code&gt; ToopherSecondFactorPrincipal &lt;/code&gt;.
     *
     * <p>
     *

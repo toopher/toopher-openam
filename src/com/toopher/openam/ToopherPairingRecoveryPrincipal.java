@@ -23,21 +23,17 @@
 *
 */
 
-package com.forgerock.openam.examples;
+package com.toopher.openam;
 
 import java.io.Serializable;
 import java.security.Principal;
 
-/**
-*
-* @author Steve Ferris steve.ferris@forgerock.com
-*/
-public class PairingRecoveryPrincipal implements Principal, Serializable {
+public class ToopherPairingRecoveryPrincipal implements Principal, Serializable {
     private String name;
-    private final static String CLASSNAME = "PairingRecoveryPrincipal";
+    private final static String CLASSNAME = "ToopherPairingRecoveryPrincipal";
     private final static String COLON = " : ";
     
-    public PairingRecoveryPrincipal(String name) {
+    public ToopherPairingRecoveryPrincipal(String name) {
         if (name == null) {
             throw new NullPointerException("illegal null input");
         }
@@ -46,22 +42,22 @@ public class PairingRecoveryPrincipal implements Principal, Serializable {
     }
     
     /**
-    * Return the LDAP username for this &lt;code&gt; PairingRecoveryPrincipal &lt;/code&gt;.
+    * Return the LDAP username for this &lt;code&gt; ToopherPairingRecoveryPrincipal &lt;/code&gt;.
     *
     * <p>
     *
-    * @return the LDAP username for this &lt;code&gt; PairingRecoveryPrincipal &lt;/code&gt;
+    * @return the LDAP username for this &lt;code&gt; ToopherPairingRecoveryPrincipal &lt;/code&gt;
     */
     public String getName() {
         return name;
     }
     
     /**
-    * Return a string representation of this &lt;code&gt; PairingRecoveryPrincipal &lt;/code&gt;.
+    * Return a string representation of this &lt;code&gt; ToopherPairingRecoveryPrincipal &lt;/code&gt;.
     *
     * <p>
     *
-    * @return a string representation of this &lt;code&gt;TestAuthModulePrincipal&lt;/code&gt;.
+    * @return a string representation of this &lt;code&gt;ToopherPairingRecoveryPrincipal&lt;/code&gt;.
     */
     @Override
     public String toString() {
@@ -69,18 +65,18 @@ public class PairingRecoveryPrincipal implements Principal, Serializable {
     }
     
     /**
-    * Compares the specified Object with this &lt;code&gt; PairingRecoveryPrincipal &lt;/code&gt;
+    * Compares the specified Object with this &lt;code&gt; ToopherPairingRecoveryPrincipal &lt;/code&gt;
     * for equality.  Returns true if the given object is also a
-    * &lt;code&gt; PairingRecoveryPrincipal &lt;/code&gt; and the two PairingRecoveryPrincipal
+    * &lt;code&gt; ToopherPairingRecoveryPrincipal &lt;/code&gt; and the two ToopherPairingRecoveryPrincipal
     * have the same username.
     *
     * <p>
     *
     * @param o Object to be compared for equality with this
-    *      &lt;code&gt; PairingRecoveryPrincipal &lt;/code&gt;.
+    *      &lt;code&gt; ToopherPairingRecoveryPrincipal &lt;/code&gt;.
     *
     * @return true if the specified Object is equal equal to this
-    *      &lt;code&gt; PairingRecoveryPrincipal &lt;/code&gt;.
+    *      &lt;code&gt; ToopherPairingRecoveryPrincipal &lt;/code&gt;.
     */
     @Override
     public boolean equals(Object o) {
@@ -92,10 +88,10 @@ public class PairingRecoveryPrincipal implements Principal, Serializable {
             return true;
         }
         
-        if (!(o instanceof PairingRecoveryPrincipal)) {
+        if (!(o instanceof ToopherPairingRecoveryPrincipal)) {
             return false;
         }
-        PairingRecoveryPrincipal that = (PairingRecoveryPrincipal) o;
+        ToopherPairingRecoveryPrincipal that = (ToopherPairingRecoveryPrincipal) o;
         
         if (this.getName().equals(that.getName())) {
             return true;
@@ -104,11 +100,11 @@ public class PairingRecoveryPrincipal implements Principal, Serializable {
     }
     
     /**
-    * Return a hash code for this &lt;code&gt; SampleAuthPrincipal &lt;/code&gt;.
+    * Return a hash code for this &lt;code&gt; ToopherPairingRecoveryPrincipal &lt;/code&gt;.
     *
     * <p>
     *
-    * @return a hash code for this &lt;code&gt; SampleAuthPrincipal &lt;/code&gt;.
+    * @return a hash code for this &lt;code&gt; ToopherPairingRecoveryPrincipal &lt;/code&gt;.
     */
     @Override
     public int hashCode() {
