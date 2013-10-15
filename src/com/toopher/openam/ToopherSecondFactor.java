@@ -160,42 +160,10 @@ public class ToopherSecondFactor extends AMLoginModule {
 			if (debug.messageEnabled()) {
 				debug.message("SampleAuthTwo::process state: " + state);
 			}
-			if (sharedState == null) {
-				debug.message("sharedState is null!");
-			} else {
-				debug.message("sharedState is " + sharedState.toString());
-			}
 			USERNAME = (String) sharedState.get(getUserKey());
-			System.out.println("====================================");
+			debug.message("====================================");
 			HttpServletRequest request = getHttpServletRequest();
-			if (request != null) {
-				debug.message("request: "
-						+ request);
-			} else {
-				debug.message("request is null");
-			}
-			JSONObject data = null;
 
-			/*
-			if (isUseFirstPassEnabled()) {
-				try {
-					
-					String name = (String) sharedState.get(getUserKey());
-					String pair = userManager.findPairingByUID(name);
-					request.setAttribute("username", name);
-					request.setAttribute("isSecond", true);
-					request.setAttribute("OTPS", false);
-					request.setAttribute("haspairingId", pair != null);
-				} catch (Exception e) {
-					debug.message("Error in ToopherSecondFactor::process : " + e.getMessage());
-					StringWriter sw = new StringWriter();
-					PrintWriter pw = new PrintWriter(sw);
-					e.printStackTrace(pw);
-					debug.message(sw.toString());
-					return STATE_ERROR;
-				}
-			}
-			*/
 			String username = (String) sharedState.get(getUserKey());
 			String password = (String) sharedState.get(getPwdKey());
 			ToopherUser user = toopherUserManager.getToopherUserByName(username);	
@@ -270,7 +238,7 @@ public class ToopherSecondFactor extends AMLoginModule {
 					if (auth.granted) {
 						return ISAuthConstants.LOGIN_SUCCEED;
 					} else {
-						return STATE_ERROR;
+						throw new AuthLoginException("Failed Toopher Authentication");
 					}
 				}
 
@@ -294,71 +262,6 @@ public class ToopherSecondFactor extends AMLoginModule {
 				}
 
 
-				/*
-				try {
-					if (username != null) {
-						String question = request.getParameter("question");
-						String answer = request.getParameter("answer");
-						debug.message("getting user pairing");
-						String pairingId = userManager.findPairingByUID(username);
-						ToopherUseage toopherUseage = new ToopherUseage();
-						if (pairingId == null) {
-							ToopherUseage.toopherPrintln(password);
-							data = toopherUseage.toopherPairingVerification(
-									username, password);
-							if ((Boolean) data.get("flag")) {
-								request.setAttribute("haspairing", userManager
-										.addPairing(username,
-												(String) data.get("pairingId"),
-												question, answer));
-								throw new InvalidPasswordException(
-										"Device is paired", "blah");
-							}
-						} else {
-							String _terminal = request.getParameter("terminalId");
-							ToopherUseage.toopherPrintln(_terminal);
-							String terminal = userManager.findTerminalByUID(
-									username, _terminal);
-							if (terminal != null)
-								password = terminal;
-							if (password == null || password.trim() == "")
-								password = "blah";
-							if (_terminal.equals("OTP-RE")) {
-								data = toopherUseage.toopherUserAuth(_terminal,
-										_terminal,
-										userManager.findPairingByUID(username),
-										password);
-							} else {
-								data = toopherUseage.toopherUserAuth(password,
-										_terminal,
-										userManager.findPairingByUID(username),
-										null);
-								if (!_terminal.equals("OTP-RE")
-										&& !(Boolean) data.get("flag")
-										&& !(Boolean) data.get("deniedByUser")) {
-									request.setAttribute("OTPS", true);
-									//substituteUIStrings();
-									return STATE_AUTHENTICATE;
-								}
-							}
-							if (!_terminal.equals("OTP-RE") && terminal == null
-									&& (Boolean) data.get("flag")) {
-								userManager.addTerminalName(username, _terminal,
-										password);
-							}
-						}
-						if (data != null && (Boolean) data.get("flag")) {
-							return ISAuthConstants.LOGIN_SUCCEED;
-						} else
-							System.err.println("Not Done");
-					}
-					throw new InvalidPasswordException("Some Error occurred",
-							USERNAME);
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-				e.printStackTrace();
-				}
-				*/
 			case STATE_ERROR:
 				return STATE_ERROR;
 			default:
