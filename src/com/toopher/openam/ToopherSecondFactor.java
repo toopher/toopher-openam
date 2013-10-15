@@ -8,8 +8,10 @@ import java.util.Set;
 import java.util.ResourceBundle;
 import java.io.StringWriter;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.SecureRandom;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.NameCallback;
@@ -18,6 +20,7 @@ import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.login.LoginException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,6 +44,9 @@ public class ToopherSecondFactor extends AMLoginModule {
 	private final static String DEBUG_NAME = "ToopherSecondFactor";
 	// Name of the resource-bundle
 	private final static String amAuthToopherSecondFactor = "amAuthToopherSecondFactor";
+	private static final SecureRandom secureRandom = new SecureRandom();
+	private static final String TERMINAL_ID_COOKIE_NAME = "toopher_terminal_id";
+	private static final int TERMINAL_ID_COOKIE_MAX_AGE = 10 * 365 * 24 * 60 * 60;  // 10 years
 	
 	// orders defined in the callbacks file
 	private String USERNAME = "-";
@@ -66,6 +72,7 @@ public class ToopherSecondFactor extends AMLoginModule {
 	}
 
 	private ToopherUserManager getToopherUserManager() {
+
 		debug.message("Creating ToopherUserManager");
 		Set serverUris = (Set)options.get("iplanet-am-auth-ToopherSecondFactor-serverList");
 		int numServers = serverUris.size();
@@ -128,11 +135,7 @@ public class ToopherSecondFactor extends AMLoginModule {
 	// In this method we store service attributes and localized properties
 	// for later use
 	public void init(Subject subject, Map sharedState, Map options) {
-		if (debug.messageEnabled()) {
-			debug.message("ToopherSecondFactor::init");
-		}
 		if (isUseFirstPassEnabled()) {
-			debug.message("sharedState is enabled");
 			this.sharedState = sharedState;
 		}
 		if (sharedState == null) {
@@ -152,27 +155,55 @@ public class ToopherSecondFactor extends AMLoginModule {
 		String toopherConsumerKey = CollectionHelper.getMapAttr(options, "iplanet-am-auth-ToopherSecondFactor-consumerKey");
 		String toopherConsumerSecret = CollectionHelper.getMapAttr(options, "iplanet-am-auth-ToopherSecondFactor-consumerSecret");
 		api = new ToopherAPI(toopherConsumerKey, toopherConsumerSecret);
+
+		clearStatusCookie();
+	}
+
+	private ToopherUserTerminal getToopherUserTerminal(ToopherUser user) throws ToopherDataStoreException{
+		HttpServletRequest request = getHttpServletRequest();
+		ToopherUserTerminal result = null;
+		for (Cookie cookie : request.getCookies()){
+			if(cookie.getName().equals(TERMINAL_ID_COOKIE_NAME)) {
+				// terminal has already been set
+				debug.message(String.format("toopher_terminal_id = %s", cookie.getValue()));
+				return toopherUserManager.getOrCreateToopherUserTerminal(user, cookie.getValue());
+			}
+		}
+
+		// no cookie has been set yet - set one on the response
+		//
+		String terminalId = new BigInteger(20 * 8, secureRandom).toString(32);
+		HttpServletResponse response = getHttpServletResponse();
+		Cookie terminalCookie = new Cookie(TERMINAL_ID_COOKIE_NAME, terminalId);
+		terminalCookie.setMaxAge(TERMINAL_ID_COOKIE_MAX_AGE);
+		terminalCookie.setPath("/");
+		response.addCookie(terminalCookie);
+		return toopherUserManager.getOrCreateToopherUserTerminal(user, terminalId);
+	}
+	
+
+	private void clearStatusCookie() {
+		getHttpServletResponse().addCookie(new Cookie("toopher_auth_status", "n/a"));
+	}
+	private void setStatusCookiePoll() {
+		getHttpServletResponse().addCookie(new Cookie("toopher_auth_status", "poll"));
 	}
 
 	@Override
 	public int process(Callback[] callbacks, int state) throws LoginException {
 		try {
+			debug.message("====================================");
 			if (debug.messageEnabled()) {
 				debug.message("SampleAuthTwo::process state: " + state);
 			}
 			USERNAME = (String) sharedState.get(getUserKey());
-			debug.message("====================================");
 			HttpServletRequest request = getHttpServletRequest();
+			HttpServletResponse response = getHttpServletResponse();
 
 			String username = (String) sharedState.get(getUserKey());
 			String password = (String) sharedState.get(getPwdKey());
 			ToopherUser user = toopherUserManager.getToopherUserByName(username);	
-			ToopherUserTerminal terminal = null;
-			for (Cookie cookie : request.getCookies()){
-				if(cookie.getName().equals("toopher_terminal_id")) {
-					terminal = toopherUserManager.getOrCreateToopherUserTerminal(user, cookie.getValue());
-				}
-			}
+			ToopherUserTerminal terminal = getToopherUserTerminal(user);
 			if (terminal == null) {
 				debug.message("Error retrieving terminal ID.  Is toopher-openam.js included?");
 				return STATE_ERROR;
@@ -201,8 +232,12 @@ public class ToopherSecondFactor extends AMLoginModule {
 							// user has already named terminal
 							debug.message("user has already named terminal");
 							Map<String,String> extras = new HashMap<String,String>();
+							debug.message(String.format("terminal_name = %s, terminal_name_extra = %s", terminal.getFriendlyName(), terminal.getTerminalNameExtra()));
 							extras.put("terminal_name_extra", terminal.getTerminalNameExtra());
 							auth = api.authenticate(user.getPairingId(), terminal.getFriendlyName(), "Log in", extras);
+							debug.message(String.format("terminal_id is %s", auth.terminalId));
+							debug.message(String.format("auth_id is %s", auth.id));
+							setStatusCookiePoll();
 							return STATE_WAIT_FOR_AUTH;
 						} else {
 							debug.message("user needs to name terminal");
@@ -216,12 +251,14 @@ public class ToopherSecondFactor extends AMLoginModule {
 				PairingStatus pairing = api.pair(pairingPhrase, user.getName());
 				user.setPairingId(pairing.id);
 				toopherUserManager.save(user);
+				setStatusCookiePoll();
 				return STATE_WAIT_FOR_PAIRING;
 			case STATE_WAIT_FOR_PAIRING:
 				PairingStatus pairingStatus = api.getPairingStatus(user.getPairingId());
 				if (pairingStatus.enabled) {
 					return STATE_BEGIN;
 				} else {
+					setStatusCookiePoll();
 					return STATE_WAIT_FOR_PAIRING;
 				}
 			case STATE_NAME_TERMINAL:
@@ -233,6 +270,7 @@ public class ToopherSecondFactor extends AMLoginModule {
 			case STATE_WAIT_FOR_AUTH:
 				auth = api.getAuthenticationStatus(auth.id);
 				if (auth.pending) {
+					setStatusCookiePoll();
 					return STATE_WAIT_FOR_AUTH;
 				} else {
 					if (auth.granted) {
@@ -265,10 +303,11 @@ public class ToopherSecondFactor extends AMLoginModule {
 			case STATE_ERROR:
 				return STATE_ERROR;
 			default:
-				debug.message("IDK LOL WTF " + state);
-				throw new AuthLoginException("invalid state");
+				throw new AuthLoginException("invalid state " + state);
 
 			}
+		} catch (LoginException e) {
+			throw e;
 		} catch (Exception e) {
 			debug.message("Error in ToopherSecondFactor::process : " + e.getMessage());
 			StringWriter sw = new StringWriter();

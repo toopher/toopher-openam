@@ -1,3 +1,4 @@
+// vim: ts=2 sw=2 expandtab cindent
 //addEventListener polyfill 1.0 / Eirik Backer / MIT Licence
 (function(win, doc){
 	if(win.addEventListener)return;		//No need to polyfill
@@ -28,15 +29,10 @@
 	}
 })(window, document);
 
-function createCookie(name, value, days) {
-  if (days) {
-    var date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    var expires = "; expires=" + date.toGMTString();
-  } else var expires = "";
-  document.cookie = name + "=" + escape(value) + expires + "; path=/";
+function delCookie(name)
+{
+      document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
-
 function readCookie(name) {
   var nameEQ = name + "=";
   var ca = document.cookie.split(';');
@@ -48,16 +44,13 @@ function readCookie(name) {
   return null;
 }
 
-function checkCookie() {
-  var terminal_id = readCookie("toopher_terminal_id");
-  if (terminal_id == null || terminal_id == undefined || terminal_id == "") {
-    terminal_id = "toopher_terminal_id" + Math.random().toString(36).slice(2);
-    createCookie("toopher_terminal_id", terminal_id, 365 * 10);
-    //document.getElementById('terminalId').value = terminal_id;
-  } else {
-    //document.getElementById('terminalId').value = terminal_id;
-    //LoginSubmit('Log In');
+function toopher_auth_manager() {
+  var status = readCookie("toopher_auth_status");
+  delCookie("toopher_auth_status");
+  if (status === 'poll') {
+    setTimeout(function(){LoginSubmit('Log In');}, 2000);
   }
+  
 }
 
-window.addEventListener("load", checkCookie(), false);
+window.addEventListener("load", toopher_auth_manager(), false);

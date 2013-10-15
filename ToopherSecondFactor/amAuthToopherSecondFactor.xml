@@ -14,12 +14,12 @@
         </AttributeSchema>
         <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-consumerKey" type="single" syntax="string" validator="no" i18nKey="a502">
           <DefaultValues>
-            <Value></Value>
+            <Value/>
           </DefaultValues>
         </AttributeSchema>
         <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-consumerSecret" type="single" syntax="string" validator="no" i18nKey="a503">
           <DefaultValues>
-            <Value></Value>
+            <Value/>
           </DefaultValues>
         </AttributeSchema>
         <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-serverList" type="list" syntax="string" validator="no" i18nKey="a504">
@@ -39,7 +39,7 @@
         </AttributeSchema>
         <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-bindUserPassword" type="single" syntax="password" validator="no" i18nKey="a507">
           <DefaultValues>
-            <Value></Value>
+            <Value/>
           </DefaultValues>
         </AttributeSchema>
         <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-ldapBaseDC" type="single" syntax="string" validator="no" i18nKey="a508">
@@ -83,6 +83,13 @@
           </AttributeSchema>
         </SubSchema>
       </Organization>
+      <User>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-userIsToopherEnabled" type="single" syntax="boolean" i18nKey="">
+          <DefaultValues>
+            <Value>false</Value>
+          </DefaultValues>
+        </AttributeSchema>
+      </User>
     </Schema>
   </Service>
 </ServicesConfiguration>
