@@ -11,7 +11,7 @@ administration tasks.
 
 
 ### Compatibility Notes
-These materials were primarily developed on the following environment, and some of the commands references may
+These materials were primarily developed on the following environment, and some of the commands referenced may
 be specific to these vendors.  If you would like us to provide assistance with installation on a different 
 environment, please contact us at <support@toopher.com>:
 
@@ -25,6 +25,13 @@ environment, please contact us at <support@toopher.com>:
 Other configurations are likely to work without issue, but have not been specifically tested at Toopher.
 
 ## Preparing the System
+### Extract files from archive
+All the required files are included in the tarball we provided.  Extract the files into a directory of your choice as usual:
+
+    tar xzvf toopher-openam.tgz
+    
+The commands given below assume your working directory is the same as that used when extracting the tarball (unless otherwise described)
+    
 ### Import the LDAP Schema
 To facilitate keeping all user information in a single place, Toopher uses several custom LDAP
 attributeTypes and objectClasses to track individual user's authentication settings.  These schema changes
@@ -41,7 +48,7 @@ install the ldif file instead:
 
     sudo cp cn\=\{99\}toopher_schema.ldif /etc/openldap/slapd.d/cn=config/cn=schema
 
-It is a good idea to ensure that the configuration files are readable by the `ldap` user
+Ensure that the configuration files are readable by the `ldap` user
 
     sudo chown -R ldap:ldap /etc/openldap
 
@@ -62,19 +69,20 @@ Edit Login.jsp to include the Toopher javascript file at the end of the page (ju
 
                     </div>
                 </div>
+                <!--Beginning of required change-->
                 <script language="JavaScript" src="<%= ServiceURI%>/js/toopher-openam.js" type="text/javascript"></script>
+                <!--End of required change-->
             </body>
         </jato:useViewBean>
     </html>
 
-Again, it is a good idea to make sure tomcat can access all of the new files:
+Make sure tomcat can access all of the new files:
 
     sudo chown -R tomcat:tomcat ${CATALINA_HOME}/webapps/openam
 
 ## Installation
 ### Enable ssoadm.jsp
-Adding the new service requires `ssoadm.jsp`, which is disabled by default in newer versions of OpenAM for security
-reasons.  Follow the instructions on the [Forgerock wiki](https://wikis.forgerock.org/confluence/display/openam/Activate+ssoadm.jsp)
+Adding the new service requires `ssoadm.jsp`, which is disabled by default in newer versions of OpenAM.  Follow the instructions on the [Forgerock wiki](https://wikis.forgerock.org/confluence/display/openam/Activate+ssoadm.jsp)
 to enable it.  Alternately, users who are familiar with the command-line `ssoadm` tool may wish to use
 it instead of `ssoadm.jsp`, but this guide will focus on using `ssoadm.jsp`
 
@@ -120,3 +128,10 @@ Congratulations - You're done!
 
 ## Using Toopher to protect Authentications
 Once Toopher is configured, users will be given an option to enroll in Two-Factor authentication the next time they log in.
+
+## Future Enhancements
+This pilot demonstrates the core functionality of a Toopher-enhanced OpenAM authentication flow.  Several further improvements are in active development and will be available soon:
+
+* Self-service Toopher pairing management (e.g., account recovery for when a user loses access to their second factor, etc.)
+* Admin pairing management (e.g., allow admins to deactivate pairing, etc.)
+* More dynamic Toopher authentication waiting room (currently the webpage periodically refreshes while Toopher authentication is performed)
