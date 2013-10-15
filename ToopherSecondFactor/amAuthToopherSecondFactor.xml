@@ -20,7 +20,7 @@
               <Value>1</Value>
             </DefaultValues>
           </AttributeSchema>
-          <AttributeSchema name="ToopherSecondFactor-service-specific-attribute" type="single" syntax="string" validator="no" i18nKey="a501">
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-service-specific-attribute" type="single" syntax="string" validator="no" i18nKey="a501">
             <DefaultValues>
               <Value/>
             </DefaultValues>
