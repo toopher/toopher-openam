@@ -1,10 +1,8 @@
 Installing and Configuring the Toopher for OpenAM Integration
 =============================================================
 
-*  [Overview](#overview)
-
-<h2 id="overview">Overview</h2>
-<h3 id="scope">Document Scope</h3>
+## Overview
+### Document Scope
 This guide details everything needed to integrate Toopher Two-Factor Authentication with OpenAM, a popular open-source
 Authentication, Authorization, Entitlement, and Federation solution.  Readers should already be familiar with 
 installation and administration for OpenAM and OpenLDAP, as well as be comfortable with general Linux
@@ -12,7 +10,7 @@ administration tasks.
 
 
 
-<h3 id="compatibility">Compatibility Notes</h3>
+### Compatibility Notes
 These materials were primarily developed on the following environment, and some of the commands references may
 be specific to these vendors.  If you would like us to provide assistance with installation on a different 
 environment, please contact us at <support@toopher.com>:
@@ -26,8 +24,8 @@ environment, please contact us at <support@toopher.com>:
 
 Other configurations are likely to work without issue, but have not been specifically tested at Toopher.
 
-<h2 id="preparing">Preparing the System</h2>
-<h3 id="importschema">Import the LDAP Schema</h3>
+## Preparing the System
+### Import the LDAP Schema
 To facilitate keeping all user information in a single place, Toopher uses several custom LDAP
 attributeTypes and objectClasses to track individual user's authentication settings.  These schema changes
 must be imported into the LDAP directory prior to installing the OpenAM module.
@@ -51,7 +49,7 @@ The schema changes will become active after the `slapd` daemon is restarted:
 
     sudo service slapd restart
 
-<h3 id="copyfiles">Copy the Installation Files to OpenAM</h3>
+### Copy the Installation Files to OpenAM
 All executable and configuration files must be copied to the proper spot in the OpenAM installation:
 
     sudo cp openam/lib/*.jar ${CATALINA_HOME}/webapps/openam/WEB_INF/lib/
@@ -64,14 +62,14 @@ Again, it is a good idea to make sure tomcat can access all of the new files:
 
     sudo chown -R tomcat:tomcat ${CATALINA_HOME}/webapps/openam
 
-<h2 id="install">Installation</h2>
-<h3 id="enablessoadm">Enable ssoadm.jsp</h3>
+## Installation
+### Enable ssoadm.jsp
 Adding the new service requires `ssoadm.jsp`, which is disabled by default in newer versions of OpenAM for security
 reasons.  Follow the instructions on the [Forgerock wiki](https://wikis.forgerock.org/confluence/display/openam/Activate+ssoadm.jsp)
 to enable it.  Alternately, users who are familiar with the command-line `ssoadm` tool may wish to use
 it instead of `ssoadm.jsp`, but this guide will focus on using `ssoadm.jsp`
 
-<h3 id="installsvc">Create and Register the Toopher OpenAM Service</h3>
+### Create and Register the Toopher OpenAM Service
 Log in to the OpenAM Top-Level Realm as an administrator (usually `amAdmin`), and navigate to 
 <http://SERVERNAME:PORT/openam/ssoadm.jsp?cmd=create-svc> in a web browser.  Paste the *contents* of 
 `amAuthToopherSecondFactor.xml` into the text area, and click `Submit`
