@@ -1,16 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE ModuleProperties PUBLIC "=//iPlanet//Authentication Module Properties XML Interface 1.0 DTD//EN" "jar://com/sun/identity/authentication/Auth_Module_Properties.dtd">
 <ModuleProperties moduleName="ToopherSecondFactor" version="1.0">
-  <Callbacks length="0" order="1" timeout="600" header="Toopher"/>
-  <Callbacks length="2" order="2" timeout="600" header="Toopher authentication">
-    <NameCallback isRequired="true">
-      <Prompt>#USERNAME#</Prompt>
-    </NameCallback>
-    <PasswordCallback echoPassword="false">
-      <Prompt>#PASSWORD#</Prompt>
-    </PasswordCallback>
+  <Callbacks length="0" order="1" timeout="600" header="Toopher">
+  <!-- dummy callback so code can figure out what to do next -->
   </Callbacks>
-  <Callbacks length="1" order="3" timeout="600" header="Toopher" error="true">
+  <Callbacks length="1" order="2" timeout="600" header="Pair with Toopher">
+    <NameCallback isRequired="true">
+      <Prompt>Please enter a Pairing Phrase generated from the Toopher Mobile app</Prompt>
+    </NameCallback>
+  </Callbacks>
+  <Callbacks length="1" order="3" timeout="600" header="Waiting for Pairing Completion">
+  </Callbacks>
+  <Callbacks length="1" order="4" timeout="600" header="Name Terminal">
+    <NameCallback isRequired="true">
+      <Prompt>Terminal Name</Prompt>
+    </NameCallback>
+  </Callbacks>
+  <Callbacks length="1" order="5" timeout="600" header="Authenticating with Toopher">
+  </Callbacks>
+  <Callbacks length="1" order="6" timeout="600" header="Enable Toopher Two-Factor Authentication?">
+       <ConfirmationCallback>
+            <OptionValues>
+                <OptionValue>
+                    <Value>Yes, use Toopher</Value>
+                </OptionValue>
+                <OptionValue>
+                    <Value>No thanks</Value>
+                </OptionValue>
+            </OptionValues>
+        </ConfirmationCallback>
+<!--
+    <ChoiceCallback>
+      <Prompt>Enroll in Toopher Two-Factor Authentication?</Prompt>
+      <ChoiceValues>
+      	<ChoiceValue><Value>yes</Value></ChoiceValue>
+      	<ChoiceValue ><Value>no</Value></ChoiceValue>
+      </ChoiceValues>
+    </ChoiceCallback>
+    -->
+  </Callbacks>
+  <Callbacks length="1" order="7" timeout="600" header="Toopher" error="true">
     <NameCallback>
       <Prompt>#THE DUMMY WILL NEVER BE SHOWN#</Prompt>
     </NameCallback>
