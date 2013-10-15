@@ -227,21 +227,20 @@ public class ToopherSecondFactor extends AMLoginModule {
 	private void substituteUIStrings() throws AuthLoginException {
 		// Get service specific attribute configured in OpenAM
 		String ssa = CollectionHelper.getMapAttr(options,
-				"SampleAuthTwo-service-specific-attribute");
+				"ToopherSecondFactor-service-specific-attribute");
 
 		// Get property from bundle
 		String new_hdr = ssa + " "
-				+ bundle.getString("SampleAuthTwo-ui-login-header");
+				+ bundle.getString("ToopherSecondFactor-ui-login-header");
 		// substituteHeader(STATE_AUTH, new_hdr);
 		//forceCallbacksInit();
 		debug.message("substituteUIStrings: C-" + STATE_AUTH + " bundle:->" + new_hdr + "<");
-		Callback[] cbs_phone = getCallback(STATE_AUTH);
 
 		replaceCallback(
 				STATE_AUTH,
 				0,
 				new NameCallback(bundle
-						.getString("SampleAuthTwo-ui-username-prompt")));
+						.getString("ToopherSecondFactor-ui-username-prompt")));
 
 	}
 
