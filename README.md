@@ -58,6 +58,15 @@ All executable and configuration files must be copied to the proper spot in the 
     sudo cp openam/config/ToopherSecondFactor.xml ${CATALINA_HOME}/webapps/openam/config/auth/default/
     sudo cp openam/config/toopher-openam.js ${CATALINA_HOME}/webapps/openam/js
 
+Edit Login.jsp to include the Toopher javascript file at the end of the page (just above the closing `</body>` tag):
+
+                    </div>
+                </div>
+                <script language="JavaScript" src="<%= ServiceURI%>/js/toopher-openam.js" type="text/javascript"></script>
+            </body>
+        </jato:useViewBean>
+    </html>
+
 Again, it is a good idea to make sure tomcat can access all of the new files:
 
     sudo chown -R tomcat:tomcat ${CATALINA_HOME}/webapps/openam
@@ -77,3 +86,37 @@ Log in to the OpenAM Top-Level Realm as an administrator (usually `amAdmin`), an
 Next, navigate to <http://SERVERNAME:PORT/openam/ssoadm.jsp?cmd=register-auth-module> in a web browser.
 Enter `com.toopher.openam.ToopherSecondFactor` into the text box and click `Submit`
 
+Finally, restart tomcat so the changes take effect:
+
+    sudo service tomcat6 restart
+
+### Configure the Toopher module
+If you have not done so already, provision a new Toopher Consumer Key/Secret pair for the OpenAM server by visiting <https://dev.toopher.com> and creating a new requester.
+
+From the [OpenAM Administration page](http://SERVERNAME:PORT/openam/task/Home), navigate to the Toopher Service
+ Configuration page (Click on `Configuration`, then click on `Toopher Two-Factor Security`.  
+Enter your Toopher Consumer Key and Secret, along with the information required to connect to your LDAP server.
+The `Bind User DN` user must have sufficient permissions to modify user objects and create new entries in the directory. 
+When finished, click `Save`.
+
+## Realm Configuration
+### Enable Toopher for selected realms
+From the [OpenAM Administration Page](http://SERVERNAME:PORT/openam/task/Home), navigate to the realm's Authentication setup page (Click the `Access Control` tab, click on realm you want to modify, then select `Authentication`).  In the `Module Instances` section, click `New` to add the Toopher module.  When prompted, name the module "ToopherSecondFactor", set the type to `Toopher Two-Factor Security`, and click `OK`.
+
+### Create an Authentication Chain with Toopher
+Once `ToopherSecondFactor` appears in the `Module Instances` list, create a new Authentication Chain by clicking `New` in the `Authentication Chaining` section.  Name the chain `ToopherAuth`, and click `OK`.
+
+Add the `LDAP` module to the chain, with Criteria set to `REQUISITE`.
+
+Add `ToopherSecondFactor` to the chain, with Criteria set to `REQUIRED`.  
+
+In the `Options` field of `ToopherSecondFactor`, paste the following option:
+
+    iplanet-am-auth-shared-state-behavior-pattern=useFirstPass
+
+Configure the rest of the realm settings as fits your needs.
+
+Congratulations - You're done!
+
+## Using Toopher to protect Authentications
+Once Toopher is configured, users will be given an option to enroll in Two-Factor authentication the next time they log in.
