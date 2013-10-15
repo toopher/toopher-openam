@@ -24,6 +24,14 @@ environment, please contact us at <support@toopher.com>:
 
 Other configurations are likely to work without issue, but have not been specifically tested at Toopher.
 
+### Limitations and Known Issues
+Toopher for OpenAM is under active development, and is constantly improving with new features and bugfixes.
+Specific features that are under development include:
+
+
+Is there something you'd like to see that isn't on the list yet?  Send an email to <support@toopher.com>
+and let us know what you need.
+
 ## Preparing the System
 ### Extract files from archive
 All the required files are included in the tarball we provided.  Extract the files into a directory of your choice as usual:
@@ -46,7 +54,7 @@ After copying the schema file, edit `/etc/openldap/slapd.conf` to `#include` it 
 If your server uses [On-Line Configuration](http://www.zytrax.com/books/ldap/ch6/slapd-config.html) instead of `slapd.conf`,
 install the ldif file instead:
 
-    sudo cp cn\=\{99\}toopher_schema.ldif /etc/openldap/slapd.d/cn=config/cn=schema
+    sudo cp schema/cn\=\{99\}toopher_schema.ldif /etc/openldap/slapd.d/cn=config/cn=schema
 
 Ensure that the configuration files are readable by the `ldap` user
 
@@ -129,9 +137,32 @@ Congratulations - You're done!
 ## Using Toopher to protect Authentications
 Once Toopher is configured, users will be given an option to enroll in Two-Factor authentication the next time they log in.
 
+## Administering a Toopher-Enabled Userbase
+### Understanding The Toopher Authentication Chain
+Each LDAP user has two attributes that control how the `ToopherAuth` Authentication Chain handles their Authentication session
+
+* `toopherAuthenticateLogon` (Boolean) - Holds a `TRUE` or `FALSE` value that determines whether the user wants to add Toopher authentication.  This attribute can also be missing, which indiciates that the user has not made an election on whether to use Toopher.
+* `toopherPairingId` (String) - Holds a pseudo-random string that identifies the user's mobile device to the Toopher API.
+
+There are four states a user can be in when they authenticate:
+
+* `toopherAuthenticateLogon` and `toopherPairingId` both missing : This will be the common case immediately after the Toopher for OpenAM module is enabled.  Users will be prompted to choose whether or not they want to enroll in Toopher authentication.  If they select not to enroll, the value `FALSE` will be stored in `toopherAuthenticateLogon`, and the user will be logged in.
+* `toopherAuthenticateLogon` == `FALSE`, `toopherPairingId`=ANY : The user has already elected not to participate in Toopher authentication.  They will be logged in.
+* `toopherAuthenticateLogon` == `TRUE`, `toopherPairingId` missing or empty : The user will be prompted to pair their mobile device with their account.  The resulting Pairing ID is stored in `toopherPairingId`, and the user is authenticated through Toopher before being logged in.
+* `toopherAuthenticateLogon` == `TRUE`, `toopherPairingId` present : The user has already paired their mobile device with their account, and they will be authenticated through Toopher before being logged in.
+
 ## Future Enhancements
 This pilot demonstrates the core functionality of a Toopher-enhanced OpenAM authentication flow.  Several further improvements are in active development and will be available soon:
 
 * Self-service Toopher pairing management (e.g., account recovery for when a user loses access to their second factor, etc.)
+* Support for `ldaps://` protocol, with configurable support for self-signed certificates
+* User-accessible configuration options
 * Admin pairing management (e.g., allow admins to deactivate pairing, etc.)
 * More dynamic Toopher authentication waiting room (currently the webpage periodically refreshes while Toopher authentication is performed)
+
+### FAQ
+#### What happens if users lose their mobile device?
+Currently, the best solution is for an administrator to manually delete the `toopherAuthenticateLogon` and `toopherPairingId` for that user.  This will allow them to opt-out of Toopher authentication then next time they log in, or pair with a new device.  We are currently developing a self-service Pairing Recovery capability in Toopher for OpenAM which will reduce the administrative burden of this task, expected to be available in late 2013.
+
+#### Can users authenticate if their mobile device is not connected to the network?
+Yes, users can still authenticate with a One-Time Password by clicking on the "Authenticate with One-Time Password" button when logging in.  The Toopher mobile app can generate valid One-Time Passwords regardless of network connectivity.
