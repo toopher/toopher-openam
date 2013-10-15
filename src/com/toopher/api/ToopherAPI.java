@@ -1,3 +1,4 @@
+// vim: ts=4 sw=4 expandtab cindent
 package com.toopher.api;
 
 import java.io.IOException;
@@ -253,6 +254,18 @@ public class ToopherAPI {
         }
     }
 
+    public AuthenticationStatus getAuthenticationStatusWithOTP(String authenticationRequestId,String OTP, Map<String,String> extras) throws RequestError {
+        final String endpoint = String.format("authentication_requests/%s/otp_auth", authenticationRequestId);
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("otp", OTP));
+        try {
+            JSONObject json = post(endpoint, params, extras);
+            return new AuthenticationStatus(json);
+        } catch (Exception e) {
+            throw new RequestError(e);
+        }
+    }
+
     private JSONObject get(String endpoint) throws Exception {
     	return request(new HttpGet(), endpoint);
     }
@@ -285,8 +298,14 @@ public class ToopherAPI {
                 IOException {
             StatusLine statusLine = response.getStatusLine();
             if (statusLine.getStatusCode() >= 300) {
+                String responseBody;
+                try {
+                    responseBody = " : " + EntityUtils.toString(response.getEntity());
+                } catch (Exception e) {
+                    responseBody = "";
+                }
                 throw new HttpResponseException(statusLine.getStatusCode(),
-                                                statusLine.getReasonPhrase());
+                                                statusLine.getReasonPhrase() + responseBody );
             }
 
             HttpEntity entity = response.getEntity(); // TODO: check entity == null

@@ -48,7 +48,7 @@ function toopher_auth_manager() {
   var status = readCookie("toopher_auth_status");
   delCookie("toopher_auth_status");
   if (status === 'poll') {
-    setTimeout(function(){LoginSubmit('Log In');}, 2000);
+    setTimeout(function(){LoginSubmit('poll');}, 2000);
   }
   
 }
