@@ -1,0 +1,84 @@
+# Schema update script for Toopher Active Directory integration
+# To extend your Active Directory schema to support toopher-specific attributes:
+#      ldifde -i -f toopher_ad_schema.ldif -c DC=x DC=example,DC=com
+# replace DC=example,DC=com with values appropriate for your domain.
+
+# Notes on OID Namespace:
+# 1.3.6.1.4.1.41418            : Toopher X.500 OID Root
+#                  .1          : Active Directory Schema Objects
+#                    .1        : Schema Attributes
+#                      .1      : toopherPairingId
+#                      .2      : toopherAuthenticateLogon
+#                      .3      : toopherRequireAuthenticate
+#                      .4      : toopherAllowAutomation
+#                      .5      : toopherChallengeRequired
+#                      .6      : toopherTerminalFriendlyName
+#                    .2        : Schema Classes
+#                      .1      : toopherProtectedEntity
+#                      .2      : toopherConfigurationGroup
+#                      .3      : toopherAuthenticationPreference
+#                      .4      : toopherUserTerminal
+
+attributeType ( 1.3.6.1.4.1.41418.1.1.1 NAME 'toopherPairingID'
+  DESC 'Toopher Pairing ID'
+  EQUALITY caseIgnoreMatch
+  SUBSTR  caseIgnoreSubstringsMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE )
+
+attributeType ( 1.3.6.1.4.1.41418.1.1.2 NAME 'toopherAuthenticateLogon'
+  DESC 'Whether to authenticate login using Toopher'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE )
+
+attributeType ( 1.3.6.1.4.1.41418.1.1.3 NAME 'toopherRequireAuthenticate'
+  DESC 'Whether to authenticate action using Toopher'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE )
+
+attributeType ( 1.3.6.1.4.1.41418.1.1.4 NAME 'toopherAllowAutomation'
+  DESC 'Whether automation is allowed when authenticating'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE )
+
+attributeType ( 1.3.6.1.4.1.41418.1.1.5 NAME 'toopherChallengeRequired'
+  DESC 'Whether an authenticator challenge must be completed when authenticating'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE )
+
+attributeType ( 1.3.6.1.4.1.41418.1.1.6 NAME 'toopherTerminalFriendlyName'
+  DESC 'Toopher User Terminal Friendly Name'
+  EQUALITY caseIgnoreMatch
+  SUBSTR  caseIgnoreSubstringsMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+
+
+objectClass ( 1.3.6.1.4.1.41418.1.2.1 NAME 'toopherProtectedEntity'
+  DESC 'Toopher-Protected Entity'
+  SUP top
+  AUXILIARY
+  MAY ( toopherAuthenticateLogon $ toopherPairingID ) )
+
+objectClass ( 1.3.6.1.4.1.41418.1.2.2 NAME 'toopherConfigurationGroup'
+  DESC 'Collection of related Toopher Configuration settings'
+  SUP top
+  STRUCTURAL
+  MUST cn )
+
+objectClass (1.3.6.1.4.1.41418.1.2.3 NAME 'toopherAuthenticationPreference'
+  DESC 'Toopher Authentication Preference'
+  SUP top
+  STRUCTURAL
+  MUST cn
+  MAY ( toopherRequireAuthenticate $ toopherAllowAutomation $ toopherChallengeRequired ) )
+
+objectClass (1.3.6.1.4.1.41418.1.2.4 NAME 'toopherUserTerminal'
+  DESC 'Toopher User Terminal'
+  SUP top
+  STRUCTURAL
+  MUST ( cn $ toopherTerminalFriendlyName ) )
