@@ -1,4 +1,6 @@
 /com
-*.jar
+/toopher-openam
+/*.jar
 *.class
 *.swp
+*.tgz
