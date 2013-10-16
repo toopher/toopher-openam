@@ -24,14 +24,6 @@ environment, please contact us at <support@toopher.com>:
 
 Other configurations are likely to work without issue, but have not been specifically tested at Toopher.
 
-### Limitations and Known Issues
-Toopher for OpenAM is under active development, and is constantly improving with new features and bugfixes.
-Specific features that are under development include:
-
-
-Is there something you'd like to see that isn't on the list yet?  Send an email to <support@toopher.com>
-and let us know what you need.
-
 ## Preparing the System
 ### Extract files from archive
 All the required files are included in the tarball we provided.  Extract the files into a directory of your choice as usual:
@@ -134,9 +126,6 @@ Configure the rest of the realm settings as fits your needs.
 
 Congratulations - You're done!
 
-## Using Toopher to protect Authentications
-Once Toopher is configured, users will be given an option to enroll in Two-Factor authentication the next time they log in.
-
 ## Administering a Toopher-Enabled Userbase
 ### Understanding The Toopher Authentication Chain
 Each LDAP user has two attributes that control how the `ToopherAuth` Authentication Chain handles their Authentication session
@@ -146,10 +135,10 @@ Each LDAP user has two attributes that control how the `ToopherAuth` Authenticat
 
 There are four states a user can be in when they authenticate:
 
-* `toopherAuthenticateLogon` and `toopherPairingId` both missing : This will be the common case immediately after the Toopher for OpenAM module is enabled.  Users will be prompted to choose whether or not they want to enroll in Toopher authentication.  If they select not to enroll, the value `FALSE` will be stored in `toopherAuthenticateLogon`, and the user will be logged in.
-* `toopherAuthenticateLogon` == `FALSE`, `toopherPairingId`=ANY : The user has already elected not to participate in Toopher authentication.  They will be logged in.
-* `toopherAuthenticateLogon` == `TRUE`, `toopherPairingId` missing or empty : The user will be prompted to pair their mobile device with their account.  The resulting Pairing ID is stored in `toopherPairingId`, and the user is authenticated through Toopher before being logged in.
-* `toopherAuthenticateLogon` == `TRUE`, `toopherPairingId` present : The user has already paired their mobile device with their account, and they will be authenticated through Toopher before being logged in.
+* **`toopherAuthenticateLogon` and `toopherPairingId` both missing** : This will be the common case immediately after the Toopher for OpenAM module is enabled.  Users will be prompted to choose whether or not they want to enroll in Toopher authentication.  If they select not to enroll, the value `FALSE` will be stored in `toopherAuthenticateLogon`, and the user will be logged in.
+* **`toopherAuthenticateLogon` == `FALSE`, `toopherPairingId`=ANY** : The user has already elected not to participate in Toopher authentication.  They will be logged in.
+* **`toopherAuthenticateLogon` == `TRUE`, `toopherPairingId` missing or empty** : The user will be prompted to pair their mobile device with their account.  The resulting Pairing ID is stored in `toopherPairingId`, and the user is authenticated through Toopher before being logged in.
+* **`toopherAuthenticateLogon` == `TRUE`, `toopherPairingId` present** : The user has already paired their mobile device with their account, and they will be authenticated through Toopher before being logged in.
 
 ## Future Enhancements
 This pilot demonstrates the core functionality of a Toopher-enhanced OpenAM authentication flow.  Several further improvements are in active development and will be available soon:
