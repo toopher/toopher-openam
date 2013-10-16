@@ -46,7 +46,7 @@ After copying the schema file, edit `/etc/openldap/slapd.conf` to `#include` it 
 If your server uses [On-Line Configuration](http://www.zytrax.com/books/ldap/ch6/slapd-config.html) instead of `slapd.conf`,
 install the ldif file instead:
 
-    sudo cp schema/cn\=\{99\}toopher_schema.ldif /etc/openldap/slapd.d/cn=config/cn=schema
+    sudo cp schema/cn\=\{90\}toopher_schema.ldif /etc/openldap/slapd.d/cn=config/cn=schema
 
 Ensure that the configuration files are readable by the `ldap` user
 
