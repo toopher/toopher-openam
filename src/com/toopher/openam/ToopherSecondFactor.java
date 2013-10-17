@@ -42,7 +42,8 @@ import com.toopher.usermanagement.dal.ldap.*;
 public class ToopherSecondFactor extends AMLoginModule {
 	// Name for the debug-log
 	private final static String DEBUG_NAME = "ToopherSecondFactor";
-	// Name of the resource-bundle
+	private final static String AUTHLEVEL_KEY = "iplanet-am-auth-ToopherSecondFactor-auth-level";
+  // Name of the resource-bundle
 	private final static String amAuthToopherSecondFactor = "amAuthToopherSecondFactor";
 	private static final SecureRandom secureRandom = new SecureRandom();
 	private static final String TERMINAL_ID_COOKIE_NAME = "toopher_terminal_id";
@@ -159,6 +160,15 @@ public class ToopherSecondFactor extends AMLoginModule {
 		this.options = options;
 		bundle = amCache.getResBundle(amAuthToopherSecondFactor, getLoginLocale());
 		this.toopherUserManager = getToopherUserManager();
+
+		String authLevel = CollectionHelper.getMapAttr(options, AUTHLEVEL_KEY);
+		if (authLevel != null) {
+			try {
+				setAuthLevel(Integer.parseInt(authLevel));
+			} catch (Exception e) {
+				debug.error("ToopherSecondFactor.init() : " + "Unable to set auth level " + authLevel, e);
+			}
+		}
 
 		String toopherConsumerKey = CollectionHelper.getMapAttr(options, "iplanet-am-auth-ToopherSecondFactor-consumerKey");
 		String toopherConsumerSecret = CollectionHelper.getMapAttr(options, "iplanet-am-auth-ToopherSecondFactor-consumerSecret");
