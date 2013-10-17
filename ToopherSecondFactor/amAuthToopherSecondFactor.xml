@@ -4,6 +4,11 @@
   <Service name="iPlanetAMAuthToopherSecondFactorService" version="1.0">
     <Schema serviceHierarchy="/DSAMEConfig/authentication/iPlanetAMAuthToopherSecondFactorService" i18nFileName="amAuthToopherSecondFactor" revisionNumber="10" i18nKey="ToopherSecondFactor-service-description">
       <Organization>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-auth-level" type="single" syntax="number_range" rangeStart="0" rangeEnd="2147483647" i18nKey="a500">
+          <DefaultValues>
+            <Value>1</Value>
+          </DefaultValues>
+        </AttributeSchema>
         <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-backend" type="single_choice" syntax="string" validator="no" i18nKey="a501">
           <ChoiceValues>
             <ChoiceValue i18nKey="a600">LDAP</ChoiceValue>
@@ -63,6 +68,11 @@
           </DefaultValues>
         </AttributeSchema>
         <SubSchema name="serverconfig" inheritance="multiple">
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-auth-level" type="single" syntax="number_range" rangeStart="0" rangeEnd="2147483647" i18nKey="a500">
+            <DefaultValues>
+              <Value>1</Value>
+            </DefaultValues>
+          </AttributeSchema>
           <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-backend" type="single_choice" syntax="string" validator="no" i18nKey="a501">
             <ChoiceValues>
               <ChoiceValue i18nKey="u200">LDAP</ChoiceValue>
