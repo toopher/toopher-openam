@@ -1,4 +1,4 @@
-package com.toopher.api;
+package com.toopher;
 
 import org.json.JSONException;
 import org.json.JSONObject;

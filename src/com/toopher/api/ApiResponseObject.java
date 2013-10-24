@@ -1,4 +1,4 @@
-package com.toopher.api;
+package com.toopher;
 
 import java.util.HashMap;
 import java.util.Iterator;

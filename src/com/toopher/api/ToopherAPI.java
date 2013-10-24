@@ -1,5 +1,4 @@
-// vim: ts=4 sw=4 expandtab cindent
-package com.toopher.api;
+package com.toopher;
 
 import java.io.IOException;
 import java.net.URI;
@@ -97,9 +96,9 @@ public class ToopherAPI {
         	this.uriBase = ToopherAPI.DEFAULT_URI_BASE;
     	} else {
 	        this.uriScheme = uri.getScheme();
-	    	this.uriHost = uri.getHost();
-	    	this.uriPort = uri.getPort();
-	    	this.uriBase = uri.getPath();
+	        this.uriHost = uri.getHost();
+	        this.uriPort = uri.getPort();
+	        this.uriBase = uri.getPath();
 	    }
     }
 
@@ -139,8 +138,8 @@ public class ToopherAPI {
         params.add(new BasicNameValuePair("pairing_phrase", pairingPhrase));
         params.add(new BasicNameValuePair("user_name", userName));
         
+        JSONObject json = post(endpoint, params, extras);
         try {
-            JSONObject json = post(endpoint, params, extras);
             return new PairingStatus(json);
         } catch (Exception e) {
             throw new RequestError(e);
@@ -159,8 +158,8 @@ public class ToopherAPI {
     public PairingStatus getPairingStatus(String pairingRequestId) throws RequestError {
         final String endpoint = String.format("pairings/%s", pairingRequestId);
 
+        JSONObject json = get(endpoint);
         try {
-            JSONObject json = get(endpoint);
             return new PairingStatus(json);
         } catch (Exception e) {
             throw new RequestError(e);
@@ -225,8 +224,8 @@ public class ToopherAPI {
             params.add(new BasicNameValuePair("action_name", actionName));
         }
 
+        JSONObject json = post(endpoint, params, extras);
         try {
-            JSONObject json = post(endpoint, params, extras);
             return new AuthenticationStatus(json);
         } catch (Exception e) {
             throw new RequestError(e);
@@ -246,31 +245,58 @@ public class ToopherAPI {
             throws RequestError {
         final String endpoint = String.format("authentication_requests/%s", authenticationRequestId);
 
+        JSONObject json = get(endpoint);
         try {
-            JSONObject json = get(endpoint);
             return new AuthenticationStatus(json);
         } catch (Exception e) {
             throw new RequestError(e);
         }
     }
 
-    public AuthenticationStatus getAuthenticationStatusWithOTP(String authenticationRequestId,String OTP, Map<String,String> extras) throws RequestError {
+    public AuthenticationStatus getAuthenticationStatusWithOTP(String authenticationRequestId,String OTP) throws RequestError {
         final String endpoint = String.format("authentication_requests/%s/otp_auth", authenticationRequestId);
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("otp", OTP));
+        JSONObject json = post(endpoint, params, null);
         try {
-            JSONObject json = post(endpoint, params, extras);
             return new AuthenticationStatus(json);
         } catch (Exception e) {
             throw new RequestError(e);
         }
     }
 
-    private JSONObject get(String endpoint) throws Exception {
+
+    /**
+     * Associates a per-user "Friendly Name" to a given terminal
+     * 
+     * @param userName
+     *            The pairing id indicating to whom the request should be sent
+     * @param terminalName
+     *            The user-facing descriptive name for the terminal from which the request originates
+     * @param terminalNameExtra
+     *            The requester-specific key that uniquely identifies this terminal.  Can be shared
+     *            across multiple users.  The combination of userName and terminalNameExtra should
+     *            be unique for a requester
+     * @throws RequestError
+     *             Thrown when an exceptional condition is encountered, or the 
+     */
+    public void assignUserFriendlyNameToTerminal(String userName, String terminalName, String terminalNameExtra) throws RequestError {
+        final String endpoint = "user_terminals/create";
+
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("user_name", userName));
+        params.add(new BasicNameValuePair("name", terminalName));
+        params.add(new BasicNameValuePair("name_extra", terminalNameExtra));
+
+        post(endpoint, params, null);
+    }
+
+
+    private JSONObject get(String endpoint) throws RequestError {
     	return request(new HttpGet(), endpoint);
     }
 
-    private JSONObject post(String endpoint, List<NameValuePair> params, Map<String, String> extras) throws Exception {
+    private JSONObject post(String endpoint, List<NameValuePair> params, Map<String, String> extras) throws RequestError {
         HttpPost post = new HttpPost();
         if (extras != null && extras.size() > 0) {
         	for (Map.Entry<String, String> e : extras.entrySet()){
@@ -278,46 +304,99 @@ public class ToopherAPI {
         	}
         }
         if (params != null && params.size() > 0) {
-            post.setEntity(new UrlEncodedFormEntity(params));
+            try {
+                post.setEntity(new UrlEncodedFormEntity(params));
+            } catch (Exception e) {
+                throw new RequestError(e);
+            }
         }
         return request(post, endpoint);
     }
     
-    private JSONObject request(HttpRequestBase httpRequest, String endpoint) throws Exception {
-    	httpRequest.setURI(new URIBuilder().setScheme(this.uriScheme).setHost(this.uriHost)
-    			.setPort(this.uriPort)
-                .setPath(this.uriBase + endpoint).build());
-    	consumer.sign(httpRequest);
-    	return httpClient.execute(httpRequest, jsonHandler);
+    private JSONObject request(HttpRequestBase httpRequest, String endpoint) throws RequestError {
+        try {
+    	    httpRequest.setURI(new URIBuilder().setScheme(this.uriScheme).setHost(this.uriHost)
+    		    	.setPort(this.uriPort)
+                    .setPath(this.uriBase + endpoint).build());
+    	    consumer.sign(httpRequest);
+        } catch (Exception e) {
+            throw new RequestError(e);
+        }
+
+        try {
+    	    return httpClient.execute(httpRequest, jsonHandler);
+        } catch (RequestError re) {
+            throw re;
+        } catch (Exception e) {
+            throw new RequestError(e);
+        }
+
     }
 
     private static ResponseHandler<JSONObject> jsonHandler = new ResponseHandler<JSONObject>() {
 
         @Override
-        public JSONObject handleResponse(HttpResponse response) throws ClientProtocolException,
-                IOException {
+        public JSONObject handleResponse(HttpResponse response) throws IOException, ClientProtocolException {
             StatusLine statusLine = response.getStatusLine();
             if (statusLine.getStatusCode() >= 300) {
-                String responseBody;
-                try {
-                    responseBody = " : " + EntityUtils.toString(response.getEntity());
-                } catch (Exception e) {
-                    responseBody = "";
-                }
-                throw new HttpResponseException(statusLine.getStatusCode(),
-                                                statusLine.getReasonPhrase() + responseBody );
+                parseRequestError(statusLine, response);
             }
 
             HttpEntity entity = response.getEntity(); // TODO: check entity == null
-            String json = EntityUtils.toString(entity);
+            String json;
+            json = (entity != null) ? EntityUtils.toString(entity) : null;
 
-            try {
-                return (JSONObject) new JSONTokener(json).nextValue();
-            } catch (JSONException e) {
-                throw new ClientProtocolException("Could not interpret response as JSON", e);
+            if (json != null && !json.isEmpty()) {
+                try {
+                    return (JSONObject) new JSONTokener(json).nextValue();
+                } catch (JSONException jex) {
+                    throw new RequestError(jex);
+                }
+            } else {
+                throw new RequestError("Empty response body returned");
             }
+
         }
     };
+
+    private static void parseRequestError(StatusLine statusLine, HttpResponse response) throws RequestError {
+        HttpEntity errEntity = response.getEntity();
+        String errBody;
+        try {
+            errBody = (errEntity != null) ? EntityUtils.toString(errEntity) : null;
+        } catch (IOException iex) {
+            throw new RequestError(iex);
+        }
+
+        // first, see if we can parse this into a more meaningful error
+        if (errBody != null && !errBody.isEmpty()) {
+            try {
+                JSONObject errObj = (JSONObject) new JSONTokener(errBody).nextValue();
+                int toopherErrorCode = errObj.getInt("error_code");
+                String toopherErrorMessage = errObj.getString("error_message");
+                switch (toopherErrorCode) {
+                    case ToopherUserDisabledError.ERROR_CODE:
+                        throw new ToopherUserDisabledError(toopherErrorMessage);
+                    case ToopherUnknownUserError.ERROR_CODE:
+                        throw new ToopherUnknownUserError(toopherErrorMessage);
+                    case ToopherUnknownTerminalError.ERROR_CODE:
+                        throw new ToopherUnknownTerminalError(toopherErrorMessage);
+                    default:
+                        throw new ToopherClientError(toopherErrorCode, toopherErrorMessage,
+                                new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase()));
+                }
+
+            } catch (JSONException _jex) {
+                // extended error information was supplied as non-JSON body text
+                throw new RequestError(errBody, new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase()));
+            }
+        } else {
+
+            // Complete error info is in the HTTP StatusLine
+            throw new RequestError(new HttpResponseException(statusLine.getStatusCode(),
+                        statusLine.getReasonPhrase()));
+        }
+    }
 
     private static final String DEFAULT_URI_SCHEME = "https";
     private static final String DEFAULT_URI_HOST = "api.toopher.com";

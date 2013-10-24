@@ -33,7 +33,7 @@ import com.sun.identity.shared.datastruct.CollectionHelper;
 import com.sun.identity.shared.debug.Debug;
 
 import com.unboundid.ldap.sdk.LDAPConnectionOptions;
-import com.toopher.api.*;
+import com.toopher.*;
 
 import com.toopher.usermanagement.*;
 import com.toopher.usermanagement.dal.*;
@@ -314,7 +314,7 @@ public class ToopherSecondFactor extends AMLoginModule {
             case STATE_ENTER_OTP:
                 NameCallback ncOtp = (NameCallback) callbacks[0];
                 String otp = ncOtp.getName();
-                auth = api.getAuthenticationStatusWithOTP(auth.id, otp, null);
+                auth = api.getAuthenticationStatusWithOTP(auth.id, otp);
                 if ((!auth.pending) && (auth.granted)){
                     return ISAuthConstants.LOGIN_SUCCEED;
                 } else {
