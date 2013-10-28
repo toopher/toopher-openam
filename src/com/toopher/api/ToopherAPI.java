@@ -347,7 +347,7 @@ public class ToopherAPI {
      */
     public void setToopherEnabledForUser(String userName, boolean toopherEnabled) throws RequestError {
         final String searchEndpoint = "users";
-        final String updateEndpoint = "users/{0}";
+        final String updateEndpoint = "users/%s";
 
         // first, look up the Toopher User ID 
         List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -376,7 +376,7 @@ public class ToopherAPI {
         params = new ArrayList<NameValuePair>();
         params.add(new BasicNameValuePair("disable_toopher_auth", toopherEnabled ? "false" : "true"));
 
-        post(updateEndpoint.format(userId), params, null);
+        post(String.format(updateEndpoint, userId), params, null);
     }
 
 

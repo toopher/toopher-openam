@@ -104,12 +104,12 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
                     // user needs to name terminal
                     return STATE_NAME_TERMINAL;
                 } catch (ToopherUserDisabledError e) {
-                    debug_message("ToopherUserDisbaledError");
+                    debug_message("ToopherUserDisabledError");
                     // user does't use toopher - let them in
                     return ISAuthConstants.LOGIN_SUCCEED;
                 } catch (RequestError e) {
-                    Throwable cause = e.getCause();
-                    String err = cause.getMessage();
+                    String err = e.getMessage();
+                    debug_message("caught unknown request error: " + err);
                     if (err.toLowerCase().contains("pairing has been deactivated")) {
                         debug_message("User has deactivated pairing");
                         return STATE_NOTIFY_PAIRING_DEACTIVATED;
@@ -164,8 +164,8 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
             case STATE_ENTER_OTP:
                 NameCallback ncOtp = (NameCallback) callbacks[0];
                 String otp = ncOtp.getName();
-                auth = api.getAuthenticationStatusWithOTP(auth.id, otp);
-                if ((!auth.pending) && (auth.granted)){
+                authStatus = api.getAuthenticationStatusWithOTP(authStatus.id, otp);
+                if ((!authStatus.pending) && (authStatus.granted)){
                     return ISAuthConstants.LOGIN_SUCCEED;
                 } else {
                     throw new AuthLoginException("Invalid OTP");
@@ -178,14 +178,17 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
                     return STATE_ENTER_PAIRING_PHRASE;
                 } else {
                     // user doesn't want Toopher - make sure they're not bothered again
+                    api.setToopherEnabledForUser(userName, false);
                     return ISAuthConstants.LOGIN_SUCCEED;
                 }
             case STATE_TOOPHER_OPT_IN:
                 ConfirmationCallback optIn = (ConfirmationCallback)callbacks[0];
                 if (optIn.getSelectedIndex() == 0) { // TODO - get rid of this horrible hack
                     // user wants to use Toopher
+                    return STATE_ENTER_PAIRING_PHRASE;
                 } else {
                     // user doesn't want Toopher - make sure they're not bothered again
+                    api.setToopherEnabledForUser(userName, false);
                     return ISAuthConstants.LOGIN_SUCCEED;
                 }
 

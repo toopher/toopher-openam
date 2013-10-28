@@ -53,7 +53,6 @@ public abstract class ToopherSecondFactorBase extends AMLoginModule {
     protected Map options;
     protected Map sharedState;
     protected ToopherAPI api;
-    protected AuthenticationStatus auth;
     protected String terminalIdentifier;
     protected boolean allowOptOut;
     protected String userName;
