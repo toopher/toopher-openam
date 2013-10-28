@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ServicesConfiguration PUBLIC "=//iPlanet//Service Management Services (SMS) 1.0 DTD//EN" "jar://com/sun/identity/sm/sms.dtd">
+<ServicesConfiguration>
+  <Service name="iPlanetAMAuthToopherLocalStorageSecondFactorService" version="1.0">
+    <Schema serviceHierarchy="/DSAMEConfig/authentication/iPlanetAMAuthToopherSecondFactorService" i18nFileName="amAuthToopherSecondFactor" revisionNumber="10" i18nKey="ToopherSecondFactor-service-description">
+      <Organization>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-auth-level" type="single" syntax="number_range" rangeStart="0" rangeEnd="2147483647" i18nKey="a500">
+          <DefaultValues>
+            <Value>1</Value>
+          </DefaultValues>
+        </AttributeSchema>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-backend" type="single_choice" syntax="string" validator="no" i18nKey="a501">
+          <ChoiceValues>
+            <ChoiceValue i18nKey="a600">LDAP</ChoiceValue>
+          </ChoiceValues>
+          <DefaultValues>
+            <Value>LDAP</Value>
+          </DefaultValues>
+        </AttributeSchema>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-consumerKey" type="single" syntax="string" validator="no" i18nKey="a502">
+          <DefaultValues>
+            <Value/>
+          </DefaultValues>
+        </AttributeSchema>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-consumerSecret" type="single" syntax="string" validator="no" i18nKey="a503">
+          <DefaultValues>
+            <Value/>
+          </DefaultValues>
+        </AttributeSchema>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-serverList" type="list" syntax="string" validator="no" i18nKey="a504">
+          <DefaultValues>
+            <Value>ldap://localhost:389</Value>
+          </DefaultValues>
+        </AttributeSchema>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-numConnections" type="single" syntax="number_range" rangeStart="0" rangeEnd="100" i18nKey="a505">
+          <DefaultValues>
+            <Value>1</Value>
+          </DefaultValues>
+        </AttributeSchema>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-bindUserDN" type="single" syntax="string" validator="no" i18nKey="a506">
+          <DefaultValues>
+            <Value>cn=Administrator,dc=example,dc=com</Value>
+          </DefaultValues>
+        </AttributeSchema>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-bindUserPassword" type="single" syntax="password" validator="no" i18nKey="a507">
+          <DefaultValues>
+            <Value/>
+          </DefaultValues>
+        </AttributeSchema>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-ldapBaseDC" type="single" syntax="string" validator="no" i18nKey="a508">
+          <DefaultValues>
+            <Value>dc=example,dc=com</Value>
+          </DefaultValues>
+        </AttributeSchema>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-ldapUserSearchDN" type="single" syntax="string" validator="no" i18nKey="a509">
+          <DefaultValues>
+            <Value>ou=people,dc=example,dc=com</Value>
+          </DefaultValues>
+        </AttributeSchema>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-ldapUidAttribute" type="single" syntax="string" validator="no" i18nKey="a510">
+          <DefaultValues>
+            <Value>uid</Value>
+          </DefaultValues>
+        </AttributeSchema>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-ldapUsernameAttribute" type="single" syntax="string" validator="no" i18nKey="a511">
+          <DefaultValues>
+            <Value>cn</Value>
+          </DefaultValues>
+        </AttributeSchema>
+        <SubSchema name="serverconfig" inheritance="multiple">
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-auth-level" type="single" syntax="number_range" rangeStart="0" rangeEnd="2147483647" i18nKey="a500">
+            <DefaultValues>
+              <Value>1</Value>
+            </DefaultValues>
+          </AttributeSchema>
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-backend" type="single_choice" syntax="string" validator="no" i18nKey="a501">
+            <ChoiceValues>
+              <ChoiceValue i18nKey="u200">LDAP</ChoiceValue>
+            </ChoiceValues>
+            <DefaultValues>
+              <Value>LDAP</Value>
+            </DefaultValues>
+          </AttributeSchema>
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-serverList" type="list" syntax="string" validator="no" i18nKey="a502">
+            <DefaultValues>
+              <Value>ldap://localhost:389</Value>
+            </DefaultValues>
+          </AttributeSchema>
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-numConnections" type="single" syntax="number_range" rangeStart="0" rangeEnd="100" i18nKey="a505">
+            <DefaultValues>
+              <Value>1</Value>
+            </DefaultValues>
+          </AttributeSchema>
+        </SubSchema>
+      </Organization>
+      <User>
+        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-userIsToopherEnabled" type="single" syntax="boolean" i18nKey="">
+          <DefaultValues>
+            <Value>false</Value>
+          </DefaultValues>
+        </AttributeSchema>
+      </User>
+    </Schema>
+  </Service>
+</ServicesConfiguration>
+<!-- vim: ts=2:expandtab:autoindent 
+     -->
