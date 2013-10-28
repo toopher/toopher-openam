@@ -3,8 +3,8 @@ import os
 import toopher
 import urllib
 
-DEFAULT_TOOPHER_KEY = 'LcYPFrKAuVctGZJhhT'
-DEFAULT_TOOPHER_SECRET = 'V4ph42tdTLfWx6jSUNBwpdvyWDH3mjax'
+DEFAULT_TOOPHER_KEY = ''          # Toopher Requester Credentials can be entered in these constants.
+DEFAULT_TOOPHER_SECRET = ''
 
 class AdvancedToopherApi(toopher.ToopherApi):
     def find_users_by_name(self, user_name):
