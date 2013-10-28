@@ -235,8 +235,12 @@ public class ToopherAPI {
         final String endpoint = "authentication_requests/initiate";
 
         List<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("pairing_id", pairingId));
-        params.add(new BasicNameValuePair("terminal_name", terminalName));
+        if (pairingId != null) {
+            params.add(new BasicNameValuePair("pairing_id", pairingId));
+        }
+        if (terminalName != null) {
+            params.add(new BasicNameValuePair("terminal_name", terminalName));
+        }
         if (actionName != null && actionName.length() > 0) {
             params.add(new BasicNameValuePair("action_name", actionName));
         }

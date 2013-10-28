@@ -11,7 +11,7 @@
         </AttributeSchema>
         <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-apiUrl" type="single" syntax="string" validator="no" i18nKey="toopher-api-url">
           <DefaultValues>
-            <Value/>
+            <Value>https://api.toopher.com/v1/</Value>
           </DefaultValues>
         </AttributeSchema>
         <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-consumerKey" type="single" syntax="string" validator="no" i18nKey="toopher-consumer-key">
@@ -39,6 +39,40 @@
           </DefaultValues>
         </AttributeSchema>
         <SubSchema name="serverconfig" inheritance="multiple">
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-auth-level" type="single" syntax="number_range" rangeStart="0" rangeEnd="2147483647" i18nKey="auth-level">
+            <DefaultValues>
+              <Value>1</Value>
+            </DefaultValues>
+          </AttributeSchema>
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-apiUrl" type="single" syntax="string" validator="no" i18nKey="toopher-api-url">
+            <DefaultValues>
+              <Value>https://api.toopher.com/v1/</Value>
+            </DefaultValues>
+          </AttributeSchema>
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-consumerKey" type="single" syntax="string" validator="no" i18nKey="toopher-consumer-key">
+            <DefaultValues>
+              <Value/>
+            </DefaultValues>
+          </AttributeSchema>
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-consumerSecret" type="single" syntax="string" validator="no" i18nKey="toopher-consumer-secret">
+            <DefaultValues>
+              <Value/>
+            </DefaultValues>
+          </AttributeSchema>
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-mailAttribute" type="single" syntax="string" validator="no" i18nKey="attr-email">
+            <DefaultValues>
+              <Value>mail</Value>
+            </DefaultValues>
+          </AttributeSchema>
+          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-allowOptOut" type="single" syntax="boolean" i18nKey="allow-opt-out">
+            <BooleanValues>
+              <BooleanTrueValue i18nKey="i18nTrue">true</BooleanTrueValue>
+              <BooleanFalseValue i18nKey="i18nFalse">false</BooleanFalseValue>
+            </BooleanValues>
+            <DefaultValues>
+              <Value>false</Value>
+            </DefaultValues>
+          </AttributeSchema>
         </SubSchema>
       </Organization>
     </Schema>

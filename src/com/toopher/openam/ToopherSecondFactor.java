@@ -79,7 +79,7 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
     public int process(Callback[] callbacks, int state) throws LoginException {
         try {
             debug_message("====================================");
-            debug_message("SampleAuthTwo::process state: " + state);
+            debug_message("process state: " + state);
 
             HttpServletRequest request = getHttpServletRequest();
             HttpServletResponse response = getHttpServletResponse();
@@ -92,6 +92,7 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
                     setStatusCookiePoll();
                     return STATE_WAIT_FOR_AUTH;
                 } catch (ToopherUnknownUserError e) {
+                    debug_message("ToopherUnknownUserError");
                     if (allowOptOut) {
                         return STATE_TOOPHER_OPT_IN;
                     } else {
@@ -99,9 +100,11 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
                         return STATE_ENTER_PAIRING_PHRASE;
                     }
                 } catch (ToopherUnknownTerminalError e) {
+                    debug_message("ToopherUnknownTerminalError");
                     // user needs to name terminal
                     return STATE_NAME_TERMINAL;
                 } catch (ToopherUserDisabledError e) {
+                    debug_message("ToopherUserDisbaledError");
                     // user does't use toopher - let them in
                     return ISAuthConstants.LOGIN_SUCCEED;
                 } catch (RequestError e) {
