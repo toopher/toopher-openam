@@ -50,8 +50,9 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
     private final static int STATE_WAIT_FOR_AUTH = 5;
     private final static int STATE_ENTER_OTP = 6;
     private final static int STATE_NOTIFY_PAIRING_DEACTIVATED = 7;
-    private final static int STATE_TOOPHER_OPT_IN = 8;
-    private final static int STATE_ERROR = 9;
+    private final static int STATE_NOTIFY_PAIRING_DEACTIVATED_WITH_OPT_OUT = 8;
+    private final static int STATE_TOOPHER_OPT_IN = 9;
+    private final static int STATE_ERROR = 10;
 
     private final static Debug debug = Debug.getInstance(DEBUG_NAME);
 
@@ -110,9 +111,13 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
                 } catch (RequestError e) {
                     String err = e.getMessage();
                     debug_message("caught unknown request error: " + err);
-                    if (err.toLowerCase().contains("pairing has been deactivated")) {
+                    if (err.toLowerCase().contains("pairing has been deactivated") || err.toLowerCase().contains("pairing has not been authorized to authenticate")) {
                         debug_message("User has deactivated pairing");
-                        return STATE_NOTIFY_PAIRING_DEACTIVATED;
+						if (allowOptOut) {
+                        	return STATE_NOTIFY_PAIRING_DEACTIVATED_WITH_OPT_OUT;
+						} else {
+                        	return STATE_NOTIFY_PAIRING_DEACTIVATED;
+						}
                     } else if (err.toLowerCase().contains("pairing has not been authorized to authenticate")) {
                         debug_message("Pairing is not authorized");
                         return STATE_NOTIFY_PAIRING_DEACTIVATED;
@@ -173,6 +178,7 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
 
 
             case STATE_NOTIFY_PAIRING_DEACTIVATED:
+            case STATE_NOTIFY_PAIRING_DEACTIVATED_WITH_OPT_OUT:
                 ConfirmationCallback ccRepair = (ConfirmationCallback)callbacks[0];
                 if (ccRepair.getSelectedIndex() == 0) { // TODO - get rid of this horrible hack
                     return STATE_ENTER_PAIRING_PHRASE;
