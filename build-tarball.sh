@@ -4,19 +4,23 @@
 ./build.sh
 
 mkdir toopher-openam
-mkdir -p toopher-openam/openam
+mkdir -p toopher-openam/openam/js
+mkdir -p toopher-openam/openam/config/auth/default
+mkdir -p toopher-openam/openam/WEB-INF/lib
+mkdir -p toopher-openam/openam/WEB-INF/classes
 
-#cp -r schema toopher-openam
+
 
 cp README.md toopher-openam
 python -m markdown README.md > toopher-openam/README.html
-cp -r lib toopher-openam/openam
-cp toopher-openam.jar toopher-openam/openam/lib
-rm toopher-openam/openam/lib/amserver.jar
-rm toopher-openam/openam/lib/opensso-sharedlib.jar
+cp lib/* toopher-openam/openam/WEB-INF/lib/
+cp toopher-openam.jar toopher-openam/openam/WEB-INF/lib/
+rm toopher-openam/openam/WEB-INF/lib/amserver.jar
+rm toopher-openam/openam/WEB-INF/lib/opensso-sharedlib.jar
 
-mkdir -p toopher-openam/openam/config
-cp ToopherSecondFactor/* toopher-openam/openam/config
+cp ToopherSecondFactor/amAuthToopherSecondFactor.* toopher-openam/openam/WEB-INF/classes/
+cp ToopherSecondFactor/ToopherSecondFactor.xml toopher-openam/openam/config/auth/default/
+cp ToopherSecondFactor/toopher-openam.js toopher-openam/openam/js/
 
 mkdir -p toopher-openam/openam/tools
 cp tools/* toopher-openam/openam/tools

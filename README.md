@@ -33,13 +33,9 @@ All the required files are included in the tarball we provided.  Extract the fil
 The commands given below assume your working directory is the same as that used when extracting the tarball (unless otherwise described)
     
 ### Copy the Installation Files to OpenAM
-All executable and configuration files must be copied to the proper spot in the OpenAM installation:
+All executable and configuration files must be copied to the proper spot in the OpenAM installation.  The paths under the `/openam` directory correspond to the default layout of the OpenAM .WAR file:
 
-    sudo cp openam/lib/*.jar ${CATALINA_HOME}/webapps/openam/WEB_INF/lib/
-    sudo cp openam/config/amAuthToopherSecondFactor.xml ${CATALINA_HOME}/webapps/openam/WEB_INF/classes/
-    sudo cp openam/config/amAuthToopherSecondFactor.properties ${CATALINA_HOME}/webapps/openam/WEB_INF/classes/
-    sudo cp openam/config/ToopherSecondFactor.xml ${CATALINA_HOME}/webapps/openam/config/auth/default/
-    sudo cp openam/config/toopher-openam.js ${CATALINA_HOME}/webapps/openam/js
+    sudo cp -r openam/* ${CATALINA_HOME}/webapps/openam/
 
 Edit Login.jsp to include the Toopher javascript file at the end of the page (just above the closing `</body>` tag):
 
