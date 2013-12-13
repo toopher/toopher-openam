@@ -44,7 +44,32 @@ function readCookie(name) {
   return null;
 }
 
+function createDummyHiddenInputIfNecessary(form, inputId) {
+  if(document.getElementById(inputId) !== null) {
+    return;
+  }
+
+  var input = document.createElement('input');
+  input.setAttribute('type', 'hidden');
+  input.setAttribute('name', inputId);
+  input.setAttribute('id', inputId);
+  input.setAttribute('value', 'dummy');
+  form.appendChild(input);
+}
+
 function toopher_auth_manager() {
+  var loginForm = null;
+  for(var i=0; i<document.forms.length; i++){
+    if(document.forms[i].name === 'Login'){
+      loginForm = document.forms[i];
+      break;
+    }
+  }
+  if (loginForm) {
+    createDummyHiddenInputIfNecessary(loginForm, 'IDToken0');
+    createDummyHiddenInputIfNecessary(loginForm, 'IDToken1');
+  }
+
   var status = readCookie("toopher_auth_status");
   delCookie("toopher_auth_status");
   if (status === 'poll') {
