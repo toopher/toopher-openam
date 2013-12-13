@@ -126,6 +126,7 @@ public abstract class ToopherSecondFactorBase extends AMLoginModule {
         Cookie terminalCookie = new Cookie(TERMINAL_ID_COOKIE_NAME, terminalIdentifier);
         terminalCookie.setMaxAge(TERMINAL_ID_COOKIE_MAX_AGE);
         terminalCookie.setPath("/");
+        terminalCookie.setSecure(true);
         response.addCookie(terminalCookie);
         return terminalIdentifier;
     }
