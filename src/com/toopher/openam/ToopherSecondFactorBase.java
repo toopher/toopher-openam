@@ -76,8 +76,6 @@ public abstract class ToopherSecondFactorBase extends AMLoginModule {
         }
         if (sharedState == null) {
             debug_message("sharedState is null!");
-        } else {
-            debug_message("sharedState is " + sharedState.toString());
         }
         if (options == null) {
             debug_message("options is null");
