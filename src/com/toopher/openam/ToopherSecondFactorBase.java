@@ -79,8 +79,6 @@ public abstract class ToopherSecondFactorBase extends AMLoginModule {
         }
         if (options == null) {
             debug_message("options is null");
-        } else {
-            debug_message("options is " + options.toString());
         }
         this.options = options;
 
@@ -128,6 +126,7 @@ public abstract class ToopherSecondFactorBase extends AMLoginModule {
         terminalCookie.setPath("/");
         terminalCookie.setSecure(true);
         response.addCookie(terminalCookie);
+        debug_message("Added Toopher TerminalIdentifier cookie: " + terminalIdentifier);
         return terminalIdentifier;
     }
     
