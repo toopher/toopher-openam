@@ -126,7 +126,6 @@ public abstract class ToopherSecondFactorBase extends AMLoginModule {
         terminalCookie.setPath("/");
         terminalCookie.setSecure(true);
         response.addCookie(terminalCookie);
-        debug_message("Added Toopher TerminalIdentifier cookie: " + terminalIdentifier);
         return terminalIdentifier;
     }
     
@@ -135,7 +134,10 @@ public abstract class ToopherSecondFactorBase extends AMLoginModule {
         getHttpServletResponse().addCookie(new Cookie("toopher_auth_status", "n/a"));
     }
     protected void setStatusCookiePoll() {
-        getHttpServletResponse().addCookie(new Cookie("toopher_auth_status", "poll"));
+        this.setStatusCookie("poll");
+    }
+    protected void setStatusCookie(String status) {
+        getHttpServletResponse().addCookie(new Cookie("toopher_auth_status", status));
     }
 
     @Override

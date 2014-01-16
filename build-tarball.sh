@@ -1,5 +1,5 @@
 #!/bin/sh
-[ -d toopher-openam ] && echo "build directory already exists! Please remove before continuing" && exit
+rm -fr toopher-openam
 
 ./build.sh
 
@@ -26,3 +26,4 @@ mkdir -p toopher-openam/openam/tools
 cp tools/* toopher-openam/openam/tools
 
 tar czvf toopher-openam.tgz toopher-openam
+

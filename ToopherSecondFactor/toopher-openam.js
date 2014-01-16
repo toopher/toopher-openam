@@ -29,19 +29,81 @@
 	}
 })(window, document);
 
-function delCookie(name)
-{
-      document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-}
-function readCookie(name) {
-  var nameEQ = name + "=";
-  var ca = document.cookie.split(';');
-  for (var i = 0; i < ca.length; i++) {
-    var c = ca[i];
-    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+(function(window, document){
+var docCookies = {
+  getItem: function (sKey) {
+    return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
+  },
+  setItem: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
+    if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) { return false; }
+    var sExpires = "";
+    if (vEnd) {
+      switch (vEnd.constructor) {
+        case Number:
+          sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd;
+          break;
+        case String:
+          sExpires = "; expires=" + vEnd;
+          break;
+        case Date:
+          sExpires = "; expires=" + vEnd.toUTCString();
+          break;
+      }
+    }
+    document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
+    return true;
+  },
+  removeItem: function (sKey, sPath, sDomain) {
+    if (!sKey || !this.hasItem(sKey)) { return false; }
+    document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + ( sDomain ? "; domain=" + sDomain : "") + ( sPath ? "; path=" + sPath : "");
+    return true;
+  },
+  hasItem: function (sKey) {
+    return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
+  },
+  keys: /* optional method: you can safely remove it! */ function () {
+    var aKeys = document.cookie.replace(/((?:^|\s*;)[^\=]+)(?=;|$)|^\s*|\s*(?:\=[^;]*)?(?:\1|$)/g, "").split(/\s*(?:\=[^;]*)?;\s*/);
+    for (var nIdx = 0; nIdx < aKeys.length; nIdx++) { aKeys[nIdx] = decodeURIComponent(aKeys[nIdx]); }
+    return aKeys;
   }
-  return null;
+};
+
+function form2dict(form) {
+        if (!form || form.nodeName !== "FORM") {
+                return;
+        }
+        var result = {};
+        for (var i = form.elements.length - 1; i >= 0; i = i - 1) {
+                if (form.elements[i].name === "") {
+                        continue;
+                }
+                result[form.elements[i].name] = form.elements[i].value;
+        }
+        return result;
+}
+function serializeDict(dict){
+  var q = [];
+  for (var key in dict){
+    if (dict.hasOwnProperty(key)){
+      q.push(key + '=' + encodeURIComponent(dict[key]));
+    }
+  }
+  return q.join('&');
+}
+
+function ajaxPost(url, data, callback) {
+    var xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            callback(xmlhttp.responseText);
+        }
+    }
+
+    xmlhttp.open("POST", url, true);
+    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xmlhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    xmlhttp.send(data);
 }
 
 function createDummyHiddenInputIfNecessary(form, inputId) {
@@ -57,6 +119,21 @@ function createDummyHiddenInputIfNecessary(form, inputId) {
   form.appendChild(input);
 }
 
+function poll(url, data) {
+  ajaxPost(url, data, function(responseText){
+    var obj = JSON.parse(responseText);
+    if (obj.poll){
+      setTimeout(function(){poll(url, data);}, 2000);
+    } else {
+      LoginSubmit('poll');
+    }
+  });
+}
+
+function startPolling(form) {
+  poll(form.action, serializeDict(form2dict(form)));
+}
+
 function toopher_auth_manager() {
   var loginForm = null;
   for(var i=0; i<document.forms.length; i++){
@@ -70,12 +147,18 @@ function toopher_auth_manager() {
     createDummyHiddenInputIfNecessary(loginForm, 'IDToken1');
   }
 
-  var status = readCookie("toopher_auth_status");
-  delCookie("toopher_auth_status");
+  var toopherTerminalId = docCookies.getItem("toopher_terminal_id");
+  if (toopherTerminalId === null) {
+    docCookies.setItem('toopher_terminal_id', (Math.random()+1).toString(36).substring(2), Infinity, '/', '', true);
+  }
+
+  var status = docCookies.getItem("toopher_auth_status");
+  docCookies.removeItem("toopher_auth_status");
   if (status === 'poll') {
-    setTimeout(function(){LoginSubmit('poll');}, 2000);
+    startPolling(loginForm);
   }
   
 }
 
 window.addEventListener("load", toopher_auth_manager(), false);
+})(window, document);

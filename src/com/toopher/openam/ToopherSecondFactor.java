@@ -2,12 +2,14 @@
 package com.toopher.openam;
 
 import java.security.Principal;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.ResourceBundle;
 import java.io.StringWriter;
 import java.io.PrintWriter;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -70,25 +72,46 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
     }
 
     @Override
-    // In this method we store service attributes and localized properties
-    // for later use
     public void init(Subject subject, Map sharedState, Map options) {
         super.init(subject, sharedState, options);
+    }
+
+    private int ajaxPollingResponse(boolean poll) throws JSONException, IOException {
+        HttpServletResponse response = getHttpServletResponse();
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("poll", poll);
+        JSONObject json = new JSONObject(params);
+        json.write(response.getWriter());
+        response.getWriter().flush();
+        return 0;
     }
 
     @Override
     public int process(Callback[] callbacks, int state) throws LoginException {
         try {
-            debug_message("====================================");
-            debug_message("process state: " + state);
-
             HttpServletRequest request = getHttpServletRequest();
+            boolean isAjax = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
             HttpServletResponse response = getHttpServletResponse();
+
+            if (isAjax) {
+                boolean keepPolling = false;
+                if (pairingStatus != null) {
+                    pairingStatus = api.getPairingStatus(pairingStatus.id);
+                    keepPolling = !pairingStatus.enabled;
+                } else if (authStatus != null) {
+                    authStatus = api.getAuthenticationStatus(authStatus.id);
+                    keepPolling = authStatus.pending;
+                }
+                ajaxPollingResponse(keepPolling);
+                return state;
+            }
 
             switch (state) {
     
             case STATE_BEGIN:
                 try {
+                    pairingStatus = null;
+                    authStatus = null;
                     authStatus = api.authenticateByUserName(userName, terminalIdentifier, "Log in", null);
                     setStatusCookiePoll();
                     return STATE_WAIT_FOR_AUTH;
