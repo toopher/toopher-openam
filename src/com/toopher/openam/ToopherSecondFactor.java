@@ -43,7 +43,7 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
     //
     // Name of the resource-bundle
     private final static String amAuthToopherSecondFactor = "amAuthToopherSecondFactor";
-    
+
     // orders defined in the callbacks file
     private final static int STATE_BEGIN = 1;
     private final static int STATE_ENTER_PAIRING_PHRASE = 2;
@@ -65,7 +65,7 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
         super();
     }
 
-    private void debug_message(String message){
+    private void debug_message(String message) {
         if (debug.messageEnabled()) {
             debug.message(message);
         }
@@ -107,7 +107,7 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
             }
 
             switch (state) {
-    
+
             case STATE_BEGIN:
                 try {
                     pairingStatus = null;
@@ -136,11 +136,11 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
                     debug_message("caught unknown request error: " + err);
                     if (err.toLowerCase().contains("pairing has been deactivated") || err.toLowerCase().contains("pairing has not been authorized to authenticate")) {
                         debug_message("User has deactivated pairing");
-						if (allowOptOut) {
-                        	return STATE_NOTIFY_PAIRING_DEACTIVATED_WITH_OPT_OUT;
-						} else {
-                        	return STATE_NOTIFY_PAIRING_DEACTIVATED;
-						}
+                        if (allowOptOut) {
+                            return STATE_NOTIFY_PAIRING_DEACTIVATED_WITH_OPT_OUT;
+                        } else {
+                            return STATE_NOTIFY_PAIRING_DEACTIVATED;
+                        }
                     } else if (err.toLowerCase().contains("pairing has not been authorized to authenticate")) {
                         debug_message("Pairing is not authorized");
                         return STATE_NOTIFY_PAIRING_DEACTIVATED;
@@ -174,7 +174,7 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
                 return STATE_BEGIN;
             case STATE_WAIT_FOR_AUTH:
                 String submitText = request.getParameter("IDButton");
-                if (!submitText.toLowerCase().equals("poll")){
+                if (!submitText.toLowerCase().equals("poll")) {
                     return STATE_ENTER_OTP;
                 }
                 authStatus = api.getAuthenticationStatus(authStatus.id);
@@ -193,7 +193,7 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
                 NameCallback ncOtp = (NameCallback) callbacks[0];
                 String otp = ncOtp.getName();
                 authStatus = api.getAuthenticationStatusWithOTP(authStatus.id, otp);
-                if ((!authStatus.pending) && (authStatus.granted)){
+                if ((!authStatus.pending) && (authStatus.granted)) {
                     return ISAuthConstants.LOGIN_SUCCEED;
                 } else {
                     throw new AuthLoginException("Invalid OTP");

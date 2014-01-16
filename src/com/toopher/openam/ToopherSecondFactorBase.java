@@ -47,7 +47,7 @@ public abstract class ToopherSecondFactorBase extends AMLoginModule {
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final String TERMINAL_ID_COOKIE_NAME = "toopher_terminal_id";
     private static final int TERMINAL_ID_COOKIE_MAX_AGE = 10 * 365 * 24 * 60 * 60;  // 10 years
-    
+
     private final static Debug debug = Debug.getInstance(DEBUG_NAME);
 
     protected Map options;
@@ -61,7 +61,7 @@ public abstract class ToopherSecondFactorBase extends AMLoginModule {
         super();
     }
 
-    private void debug_message(String message){
+    private void debug_message(String message) {
         if (debug.messageEnabled()) {
             debug.message(message);
         }
@@ -111,7 +111,7 @@ public abstract class ToopherSecondFactorBase extends AMLoginModule {
 
     private String getTerminalIdentifier() {
         HttpServletRequest request = getHttpServletRequest();
-        for (Cookie cookie : request.getCookies()){
+        for (Cookie cookie : request.getCookies()) {
             if(cookie.getName().equals(TERMINAL_ID_COOKIE_NAME)) {
                 // terminal identifier has already been set
                 return cookie.getValue();
@@ -128,7 +128,7 @@ public abstract class ToopherSecondFactorBase extends AMLoginModule {
         response.addCookie(terminalCookie);
         return terminalIdentifier;
     }
-    
+
 
     protected void clearStatusCookie() {
         getHttpServletResponse().addCookie(new Cookie("toopher_auth_status", "n/a"));
