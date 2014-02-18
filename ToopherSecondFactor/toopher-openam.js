@@ -79,16 +79,6 @@
     },
     hasItem: function (sKey) {
       return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
-    },
-    keys: /* optional method: you can safely remove it! */
-
-
-    function () {
-      var aKeys = document.cookie.replace(/((?:^|\s*;)[^\=]+)(?=;|$)|^\s*|\s*(?:\=[^;]*)?(?:\1|$)/g, "").split(/\s*(?:\=[^;]*)?;\s*/);
-      for (var nIdx = 0; nIdx < aKeys.length; nIdx++) {
-        aKeys[nIdx] = decodeURIComponent(aKeys[nIdx]);
-      }
-      return aKeys;
     }
   };
 
@@ -131,15 +121,17 @@
     xmlhttp.send(data);
   }
 
-  function createDummyHiddenInputIfNecessary(form, inputId) {
-    if (document.getElementById(inputId) !== null) {
-      return;
+  function createDummyHiddenInputIfNecessary(form, inputName) {
+    for (var i = 0; i < form.elements.length; i++) {
+      if (form.elements[i].name === inputName) {
+        return;  // if the element is already present, we don't want to add another copy
+      }
     }
 
     var input = document.createElement('input');
     input.setAttribute('type', 'hidden');
-    input.setAttribute('name', inputId);
-    input.setAttribute('id', inputId);
+    input.setAttribute('name', inputName);
+    input.setAttribute('id', inputName);
     input.setAttribute('value', 'dummy');
     form.appendChild(input);
   }
