@@ -15,9 +15,9 @@ These materials were primarily developed on the following environment, and some 
 be specific to these vendors.  If you would like us to provide assistance with installation on a different 
 environment, please contact us at <support@toopher.com>:
 
-    OS                : Centos 6.3 (2.6.32-279.el6.i686)
+    OS                : Centos 6.5 (2.6.32-431.5.1.el6)
     OpenLDAP          : 2.4.23
-    OpenAM            : OpenAM 10.0.0 (2012-April-13 10:24)
+    OpenAM            : OpenAM 11.x
     Servlet Container : Apache Tomcat 6.0.24 (June 20 2013 1452)
     JVM Version       : 1.6.0_17-b04
     JVM Vendor        : Sun Microsystems Inc.
