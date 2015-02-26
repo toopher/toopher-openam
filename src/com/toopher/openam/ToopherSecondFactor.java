@@ -45,7 +45,6 @@ public class ToopherSecondFactor extends AMLoginModule {
     protected final static String KEY_API_URL = "iplanet-am-auth-ToopherSecondFactor-apiUrl";
     protected final static String KEY_CONSUMER_KEY = "iplanet-am-auth-ToopherSecondFactor-consumerKey";
     protected final static String KEY_CONSUMER_SECRET = "iplanet-am-auth-ToopherSecondFactor-consumerSecret";
-    protected final static String KEY_ALLOW_OPT_OUT = "iplanet-am-auth-ToopherSecondFactor-allowOptOut";
     protected final static String KEY_MAIL_ATTR = "iplanet-am-auth-ToopherSecondFactor-mailAttribute";
 
     private static final SecureRandom secureRandom = new SecureRandom();
@@ -53,7 +52,6 @@ public class ToopherSecondFactor extends AMLoginModule {
     protected Map options;
     protected Map sharedState;
     protected ToopherIframe api;
-    protected boolean allowOptOut;
     protected String userName;
     protected String userEmail;
     protected String requestToken;
@@ -89,8 +87,6 @@ public class ToopherSecondFactor extends AMLoginModule {
                 debug.error("ToopherSecondFactor.init() : " + "Unable to set auth level " + authLevel, e);
             }
         }
-
-        allowOptOut = CollectionHelper.getMapAttr(options, KEY_ALLOW_OPT_OUT).compareToIgnoreCase("true") == 0;
 
         String toopherConsumerKey = CollectionHelper.getMapAttr(options, KEY_CONSUMER_KEY);
         String toopherConsumerSecret = CollectionHelper.getMapAttr(options, KEY_CONSUMER_SECRET);
