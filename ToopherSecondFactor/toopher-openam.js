@@ -55,7 +55,7 @@ var toopherOpenAM = (function (window, document, $) {
       // no iframeSrcUrl == not our turn
       return;
     }
-    var form = getLoginForm()
+    var form = getLoginForm();
     form.css("visibility", "hidden");
     var iframeEl = getOrCreateIframeTargetElement();
     iframeEl.attr("src", iframeSrcUrl);
