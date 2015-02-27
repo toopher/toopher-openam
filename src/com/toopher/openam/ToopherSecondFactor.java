@@ -33,14 +33,9 @@ public class ToopherSecondFactor extends AMLoginModule {
     private final static int STATE_SHOW_IFRAME = 2;
     private final static int STATE_ERROR = 3;
 
-    private final static String JSP_IFRAME_TRIGGER_VAR = "toopherIframeEnabled";
     private final static String JSP_IFRAME_URL_VAR = "toopherIframeSrcUrl";
     private final static Debug debug = Debug.getInstance(DEBUG_NAME);
 
-    private Pairing pairingStatus = null;
-    private AuthenticationRequest authStatus = null;
-
-    // Name for the debug-log
     protected final static String KEY_AUTHLEVEL = "iplanet-am-auth-ToopherSecondFactor-auth-level";
     protected final static String KEY_API_URL = "iplanet-am-auth-ToopherSecondFactor-apiUrl";
     protected final static String KEY_CONSUMER_KEY = "iplanet-am-auth-ToopherSecondFactor-consumerKey";
@@ -71,12 +66,7 @@ public class ToopherSecondFactor extends AMLoginModule {
         if (isUseFirstPassEnabled()) {
             this.sharedState = sharedState;
         }
-        if (sharedState == null) {
-            debug_message("sharedState is null!");
-        }
-        if (options == null) {
-            debug_message("options is null");
-        }
+
         this.options = options;
 
         String authLevel = CollectionHelper.getMapAttr(options, KEY_AUTHLEVEL);
