@@ -1,4 +1,3 @@
-// vim: ts=2 sw=2 expandtab cindent
 var toopherOpenAM = (function (window, document, $) {
 
   var formInputElement = null;

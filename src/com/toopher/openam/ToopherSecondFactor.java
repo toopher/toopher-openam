@@ -1,4 +1,3 @@
-// vim: sw=4:ts=4:cindent
 package com.toopher.openam;
 
 import java.math.BigInteger;
