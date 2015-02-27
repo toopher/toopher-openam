@@ -29,15 +29,6 @@
             <Value>mail</Value>
           </DefaultValues>
         </AttributeSchema>
-        <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-allowOptOut" type="single" syntax="boolean" i18nKey="allow-opt-out">
-          <BooleanValues>
-            <BooleanTrueValue i18nKey="i18nTrue">true</BooleanTrueValue>
-            <BooleanFalseValue i18nKey="i18nFalse">false</BooleanFalseValue>
-          </BooleanValues>
-          <DefaultValues>
-            <Value>false</Value>
-          </DefaultValues>
-        </AttributeSchema>
         <SubSchema name="serverconfig" inheritance="multiple">
           <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-auth-level" type="single" syntax="number_range" rangeStart="0" rangeEnd="2147483647" i18nKey="auth-level">
             <DefaultValues>
@@ -62,15 +53,6 @@
           <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-mailAttribute" type="single" syntax="string" validator="no" i18nKey="attr-email">
             <DefaultValues>
               <Value>mail</Value>
-            </DefaultValues>
-          </AttributeSchema>
-          <AttributeSchema name="iplanet-am-auth-ToopherSecondFactor-allowOptOut" type="single" syntax="boolean" i18nKey="allow-opt-out">
-            <BooleanValues>
-              <BooleanTrueValue i18nKey="i18nTrue">true</BooleanTrueValue>
-              <BooleanFalseValue i18nKey="i18nFalse">false</BooleanFalseValue>
-            </BooleanValues>
-            <DefaultValues>
-              <Value>false</Value>
             </DefaultValues>
           </AttributeSchema>
         </SubSchema>

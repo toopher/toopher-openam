@@ -1,65 +1,54 @@
-// vim: sw=4:ts=4:cindent
 package com.toopher.openam;
 
+import java.math.BigInteger;
+import java.net.URLDecoder;
 import java.security.Principal;
-import java.util.Enumeration;
+import java.security.SecureRandom;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Set;
-import java.util.ResourceBundle;
 import java.io.StringWriter;
 import java.io.PrintWriter;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.SecureRandom;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.NameCallback;
-import javax.security.auth.callback.ChoiceCallback;
-import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.login.LoginException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import com.sun.identity.authentication.spi.AMLoginModule;
-import com.sun.identity.authentication.spi.AuthLoginException;
-import com.sun.identity.authentication.spi.InvalidPasswordException;
-import com.sun.identity.authentication.util.ISAuthConstants;
 import com.sun.identity.shared.datastruct.CollectionHelper;
+
+import com.sun.identity.authentication.spi.AuthLoginException;
+import com.sun.identity.authentication.util.ISAuthConstants;
 import com.sun.identity.shared.debug.Debug;
 
-import com.unboundid.ldap.sdk.LDAPConnectionOptions;
 import com.toopher.*;
 
-public class ToopherSecondFactor extends ToopherSecondFactorBase {
+public class ToopherSecondFactor extends AMLoginModule {
     // Name for the debug-log
     private final static String DEBUG_NAME = "ToopherSecondFactor";
-    //
-    // Name of the resource-bundle
-    private final static String amAuthToopherSecondFactor = "amAuthToopherSecondFactor";
 
     // orders defined in the callbacks file
     private final static int STATE_BEGIN = 1;
-    private final static int STATE_ENTER_PAIRING_PHRASE = 2;
-    private final static int STATE_WAIT_FOR_PAIRING = 3;
-    private final static int STATE_NAME_TERMINAL = 4;
-    private final static int STATE_WAIT_FOR_AUTH = 5;
-    private final static int STATE_ENTER_OTP = 6;
-    private final static int STATE_NOTIFY_PAIRING_DEACTIVATED = 7;
-    private final static int STATE_NOTIFY_PAIRING_DEACTIVATED_WITH_OPT_OUT = 8;
-    private final static int STATE_TOOPHER_OPT_IN = 9;
-    private final static int STATE_ERROR = 10;
+    private final static int STATE_SHOW_IFRAME = 2;
+    private final static int STATE_ERROR = 3;
 
+    private final static String JSP_IFRAME_URL_VAR = "toopherIframeSrcUrl";
     private final static Debug debug = Debug.getInstance(DEBUG_NAME);
 
-    private PairingStatus pairingStatus = null;
-    private AuthenticationStatus authStatus = null;
+    protected final static String KEY_AUTHLEVEL = "iplanet-am-auth-ToopherSecondFactor-auth-level";
+    protected final static String KEY_API_URL = "iplanet-am-auth-ToopherSecondFactor-apiUrl";
+    protected final static String KEY_CONSUMER_KEY = "iplanet-am-auth-ToopherSecondFactor-consumerKey";
+    protected final static String KEY_CONSUMER_SECRET = "iplanet-am-auth-ToopherSecondFactor-consumerSecret";
+    protected final static String KEY_MAIL_ATTR = "iplanet-am-auth-ToopherSecondFactor-mailAttribute";
+
+    private static final SecureRandom secureRandom = new SecureRandom();
+
+    protected Map options;
+    protected Map sharedState;
+    protected ToopherIframe api;
+    protected String userName;
+    protected String userEmail;
+    protected String requestToken;
 
     public ToopherSecondFactor() {
         super();
@@ -73,154 +62,75 @@ public class ToopherSecondFactor extends ToopherSecondFactorBase {
 
     @Override
     public void init(Subject subject, Map sharedState, Map options) {
-        super.init(subject, sharedState, options);
+        if (isUseFirstPassEnabled()) {
+            this.sharedState = sharedState;
+        }
+
+        this.options = options;
+
+        String authLevel = CollectionHelper.getMapAttr(options, KEY_AUTHLEVEL);
+        if (authLevel != null) {
+            try {
+                setAuthLevel(Integer.parseInt(authLevel));
+            } catch (Exception e) {
+                debug.error("ToopherSecondFactor.init() : " + "Unable to set auth level " + authLevel, e);
+            }
+        }
+
+        String toopherConsumerKey = CollectionHelper.getMapAttr(options, KEY_CONSUMER_KEY);
+        String toopherConsumerSecret = CollectionHelper.getMapAttr(options, KEY_CONSUMER_SECRET);
+        String toopherApiUrl = CollectionHelper.getMapAttr(options, KEY_API_URL);
+
+        api = new ToopherIframe(toopherConsumerKey, toopherConsumerSecret, toopherApiUrl);
+
+        userName = (String) sharedState.get(getUserKey());
+
+        String userEmailAttr = CollectionHelper.getMapAttr(options, KEY_MAIL_ATTR);
+        // TODO: figure out how to get the user's mail attribute into userEmail
+
+        requestToken = new BigInteger(20 * 8, secureRandom).toString(32);
     }
 
-    private int ajaxPollingResponse(boolean poll) throws JSONException, IOException {
-        HttpServletResponse response = getHttpServletResponse();
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("poll", poll);
-        JSONObject json = new JSONObject(params);
-        json.write(response.getWriter());
-        response.getWriter().flush();
-        return 0;
+    private Map<String, String[]> decodeUrlEncodedDict(String urlEncodedDict) throws Exception {
+        String[] iframeDataStrs = urlEncodedDict.split("&");
+        Map<String, String[]> params = new HashMap<String, String[]>(iframeDataStrs.length);
+        for (String iframeDataStr : iframeDataStrs) {
+            String[] iframeDataKeyValue = iframeDataStr.split("=");
+
+            if (iframeDataKeyValue.length != 2) {
+                throw new Exception("Invalid iframeDataStr: " + iframeDataStr);
+            }
+            String key = iframeDataKeyValue[0];
+            String value = URLDecoder.decode(iframeDataKeyValue[1], "UTF-8");
+            params.put(key, new String[]{ value });
+        }
+        return params;
     }
 
     @Override
     public int process(Callback[] callbacks, int state) throws LoginException {
         try {
+            debug_message("ToopherSecondFactor: state = " + Integer.toString(state));
             HttpServletRequest request = getHttpServletRequest();
-            boolean isAjax = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
-            HttpServletResponse response = getHttpServletResponse();
-
-            if (isAjax) {
-                boolean keepPolling = false;
-                if (pairingStatus != null) {
-                    pairingStatus = api.getPairingStatus(pairingStatus.id);
-                    keepPolling = !pairingStatus.enabled;
-                } else if (authStatus != null) {
-                    authStatus = api.getAuthenticationStatus(authStatus.id);
-                    keepPolling = authStatus.pending;
-                }
-                ajaxPollingResponse(keepPolling);
-                return state;
-            }
 
             switch (state) {
-
             case STATE_BEGIN:
-                try {
-                    pairingStatus = null;
-                    authStatus = null;
-                    authStatus = api.authenticateByUserName(userName, terminalIdentifier, "Log in", null);
-                    setStatusCookiePoll();
-                    return STATE_WAIT_FOR_AUTH;
-                } catch (ToopherUnknownUserError e) {
-                    debug_message("ToopherUnknownUserError");
-                    if (allowOptOut) {
-                        return STATE_TOOPHER_OPT_IN;
-                    } else {
-                        // need to pair
-                        return STATE_ENTER_PAIRING_PHRASE;
-                    }
-                } catch (ToopherUnknownTerminalError e) {
-                    debug_message("ToopherUnknownTerminalError");
-                    // user needs to name terminal
-                    return STATE_NAME_TERMINAL;
-                } catch (ToopherUserDisabledError e) {
-                    debug_message("ToopherUserDisabledError");
-                    // user does't use toopher - let them in
-                    return ISAuthConstants.LOGIN_SUCCEED;
-                } catch (RequestError e) {
-                    String err = e.getMessage();
-                    debug_message("caught unknown request error: " + err);
-                    if (err.toLowerCase().contains("pairing has been deactivated") || err.toLowerCase().contains("pairing has not been authorized to authenticate")) {
-                        debug_message("User has deactivated pairing");
-                        if (allowOptOut) {
-                            return STATE_NOTIFY_PAIRING_DEACTIVATED_WITH_OPT_OUT;
-                        } else {
-                            return STATE_NOTIFY_PAIRING_DEACTIVATED;
-                        }
-                    } else if (err.toLowerCase().contains("pairing has not been authorized to authenticate")) {
-                        debug_message("Pairing is not authorized");
-                        return STATE_NOTIFY_PAIRING_DEACTIVATED;
-                    }
-                    // wasn't handleable - re-throw
-                    throw e;
-                }
-            case STATE_ENTER_PAIRING_PHRASE:
-                NameCallback nc = (NameCallback) callbacks[0];
-                String pairingPhrase = nc.getName();
-                pairingStatus = api.pair(pairingPhrase, userName);
-                debug_message("Created new pairing: " + pairingStatus.id);
-                setStatusCookiePoll();
-                return STATE_WAIT_FOR_PAIRING;
-            case STATE_WAIT_FOR_PAIRING:
-                pairingStatus = api.getPairingStatus(pairingStatus.id);
-                if (pairingStatus.enabled) {
-                    return STATE_BEGIN;
-                } else {
-                    setStatusCookiePoll();
-                    return STATE_WAIT_FOR_PAIRING;
-                }
-            case STATE_NAME_TERMINAL:
-                NameCallback ncTerm = (NameCallback) callbacks[0];
-                String terminalName = ncTerm.getName();
-                try {
-                    api.assignUserFriendlyNameToTerminal(userName, terminalName, terminalIdentifier);
-                } catch (RequestError e) {
-                    debug.error("unable to name terminal: " + e.getMessage());
-                }
-                return STATE_BEGIN;
-            case STATE_WAIT_FOR_AUTH:
-                String submitText = request.getParameter("IDButton");
-                if (!submitText.toLowerCase().equals("poll")) {
-                    return STATE_ENTER_OTP;
-                }
-                authStatus = api.getAuthenticationStatus(authStatus.id);
-                if (authStatus.pending) {
-                    setStatusCookiePoll();
-                    return STATE_WAIT_FOR_AUTH;
-                } else {
-                    if (authStatus.granted) {
-                        return ISAuthConstants.LOGIN_SUCCEED;
-                    } else {
-                        throw new AuthLoginException("Failed Toopher Authentication");
-                    }
-                }
-
-            case STATE_ENTER_OTP:
-                NameCallback ncOtp = (NameCallback) callbacks[0];
-                String otp = ncOtp.getName();
-                authStatus = api.getAuthenticationStatusWithOTP(authStatus.id, otp);
-                if ((!authStatus.pending) && (authStatus.granted)) {
+                String iframeSrc = api.getAuthenticationUrl(userName, "", requestToken);
+                request.setAttribute(JSP_IFRAME_URL_VAR, iframeSrc);
+                return STATE_SHOW_IFRAME;
+            case STATE_SHOW_IFRAME:
+                NameCallback signatureCallback = (NameCallback) callbacks[0];
+                String iframeData = signatureCallback.getName();
+                debug_message("Toopher Signature: >" + iframeData + "<");
+                Map<String, String> validatedParams = api.validatePostback(decodeUrlEncodedDict(iframeData), requestToken);
+                debug_message("Toopher Iframe signature is valid");
+                if (validatedParams.get("granted").equals("true")) {
+                    debug_message("Toopher authentication granted");
                     return ISAuthConstants.LOGIN_SUCCEED;
                 } else {
-                    throw new AuthLoginException("Invalid OTP");
+                    debug_message("Toopher authentication denied");
+                    throw new AuthLoginException("Failed Toopher Authentication");
                 }
-
-
-            case STATE_NOTIFY_PAIRING_DEACTIVATED:
-            case STATE_NOTIFY_PAIRING_DEACTIVATED_WITH_OPT_OUT:
-                ConfirmationCallback ccRepair = (ConfirmationCallback)callbacks[0];
-                if (ccRepair.getSelectedIndex() == 0) { // TODO - get rid of this horrible hack
-                    return STATE_ENTER_PAIRING_PHRASE;
-                } else {
-                    // user doesn't want Toopher - make sure they're not bothered again
-                    api.setToopherEnabledForUser(userName, false);
-                    return ISAuthConstants.LOGIN_SUCCEED;
-                }
-            case STATE_TOOPHER_OPT_IN:
-                ConfirmationCallback optIn = (ConfirmationCallback)callbacks[0];
-                if (optIn.getSelectedIndex() == 0) { // TODO - get rid of this horrible hack
-                    // user wants to use Toopher
-                    return STATE_ENTER_PAIRING_PHRASE;
-                } else {
-                    // user doesn't want Toopher - make sure they're not bothered again
-                    api.setToopherEnabledForUser(userName, false);
-                    return ISAuthConstants.LOGIN_SUCCEED;
-                }
-
 
             case STATE_ERROR:
                 return STATE_ERROR;

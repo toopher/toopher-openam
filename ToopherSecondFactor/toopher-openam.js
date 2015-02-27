@@ -1,183 +1,83 @@
-// vim: ts=2 sw=2 expandtab cindent
-//addEventListener polyfill 1.0 / Eirik Backer / MIT Licence
-(function (win, doc) {
-  if (win.addEventListener) return; //No need to polyfill
+var toopherOpenAM = (function (window, document, $) {
 
-  function docHijack(p) {
-    var old = doc[p];
-    doc[p] = function (v) {
-      return addListen(old(v))
-    }
-  }
+  var formInputElement = null;
+  var loginForm = null;
 
-  function addEvent(on, fn, self) {
-    return (self = this).attachEvent('on' + on, function (e) {
-      var e = e || win.event;
-      e.preventDefault = e.preventDefault ||
-      function () {
-        e.returnValue = false
-      }
-      e.stopPropagation = e.stopPropagation ||
-      function () {
-        e.cancelBubble = true
-      }
-      fn.call(self, e);
-    });
-  }
-
-  function addListen(obj, i) {
-    if (i = obj.length) while (i--) obj[i].addEventListener = addEvent;
-    else obj.addEventListener = addEvent;
-    return obj;
-  }
-
-  addListen([doc, win]);
-  if ('Element' in win) win.Element.prototype.addEventListener = addEvent; //IE8
-  else { //IE < 8
-    doc.attachEvent('onreadystatechange', function () {
-      addListen(doc.all)
-    }); //Make sure we also init at domReady
-    docHijack('getElementsByTagName');
-    docHijack('getElementById');
-    docHijack('createElement');
-    addListen(doc.all);
-  }
-})(window, document);
-
-(function (window, document) {
-  var docCookies = {
-    getItem: function (sKey) {
-      return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
-    },
-    setItem: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
-      if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) {
-        return false;
-      }
-      var sExpires = "";
-      if (vEnd) {
-        switch (vEnd.constructor) {
-        case Number:
-          sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd;
-          break;
-        case String:
-          sExpires = "; expires=" + vEnd;
-          break;
-        case Date:
-          sExpires = "; expires=" + vEnd.toUTCString();
-          break;
-        }
-      }
-      document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
-      return true;
-    },
-    removeItem: function (sKey, sPath, sDomain) {
-      if (!sKey || !this.hasItem(sKey)) {
-        return false;
-      }
-      document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "");
-      return true;
-    },
-    hasItem: function (sKey) {
-      return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
-    }
-  };
-
-  function form2dict(form) {
-    if (!form || form.nodeName !== "FORM") {
-      return;
-    }
-    var result = {};
-    for (var i = form.elements.length - 1; i >= 0; i = i - 1) {
-      if (form.elements[i].name === "") {
-        continue;
-      }
-      result[form.elements[i].name] = form.elements[i].value;
-    }
-    return result;
-  }
-
-  function serializeDict(dict) {
+  var serializeDict = function(dict) {
+    var key;
     var q = [];
-    for (var key in dict) {
+    for (key in dict) {
       if (dict.hasOwnProperty(key)) {
         q.push(key + '=' + encodeURIComponent(dict[key]));
       }
     }
     return q.join('&');
-  }
+  };
 
-  function ajaxPost(url, data, callback) {
-    var xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+  var getToopherFormInputElement = function() {
+    if (!formInputElement) {
+      var formInputElementLabel = $('label:contains("#TOOPHER_HIDE#")');
+      var inputElementId = formInputElementLabel.attr("for");
+      formInputElement = $('#' + inputElementId);
+    }
+    return formInputElement;
+  };
 
-    xmlhttp.onreadystatechange = function () {
-      if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-        callback(xmlhttp.responseText);
+  var getLoginForm = function() {
+    if (!loginForm) {
+      var formEls = getToopherFormInputElement().parents('form');
+      if (formEls.length) {
+        loginForm = $(formEls[0]);
       }
     }
+    return loginForm;
+  };
 
-    xmlhttp.open("POST", url, true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    xmlhttp.send(data);
-  }
-
-  function createDummyHiddenInputIfNecessary(form, inputName) {
-    for (var i = 0; i < form.elements.length; i++) {
-      if (form.elements[i].name === inputName) {
-        return;  // if the element is already present, we don't want to add another copy
-      }
+  var getOrCreateIframeTargetElement = function() {
+    // see if there is an already-created element we should use
+    var explicitTarget = document.getElementById('toopher-iframe');
+    if (explicitTarget) {
+      return explicitTarget;
     }
 
-    var input = document.createElement('input');
-    input.setAttribute('type', 'hidden');
-    input.setAttribute('name', inputName);
-    input.setAttribute('id', inputName);
-    input.setAttribute('value', 'dummy');
-    form.appendChild(input);
+    // nope - need to create our own
+    var iframeEl = $("<iframe id='toopher-iframe'></iframe>");
+    iframeEl.css("width", "100%");
+    iframeEl.css("height", "300px");
+    iframeEl.css("visibility", "none");
+    getLoginForm().before(iframeEl);
+    return iframeEl;
+  };
+
+  var init = function(iframeSrcUrl) {
+    if (!iframeSrcUrl) {
+      // no iframeSrcUrl == not our turn
+      return;
+    }
+    var form = getLoginForm();
+    form.css("visibility", "hidden");
+    var iframeEl = getOrCreateIframeTargetElement();
+    iframeEl.attr("src", iframeSrcUrl);
+    iframeEl.css("visibility", "inline-block");
+  };
+
+  var handleMessage = function(e){
+    var msgData = JSON.parse(e.data);
+    if (msgData.status === 'toopher-api-complete') {
+      getToopherFormInputElement().attr("value", serializeDict(msgData.payload));
+      getLoginForm().submit();
+    }
+  };
+
+  if (window.addEventListener) {
+    window.addEventListener('message', handleMessage, false);
+  } else {
+    window.attachEvent('onmessage', handleMessage);
   }
 
-  function poll(url, data) {
-    ajaxPost(url, data, function (responseText) {
-      var obj = JSON.parse(responseText);
-      if (obj.poll) {
-        setTimeout(function () {
-          poll(url, data);
-        }, 2000);
-      } else {
-        LoginSubmit('poll');
-      }
-    });
-  }
+  var exports = {
+    init : init
+  };
+  return exports;
+})(window, document, jQuery);
 
-  function startPolling(form) {
-    poll(form.action, serializeDict(form2dict(form)));
-  }
-
-  function toopher_auth_manager() {
-    var loginForm = null;
-    for (var i = 0; i < document.forms.length; i++) {
-      if (document.forms[i].name === 'Login') {
-        loginForm = document.forms[i];
-        break;
-      }
-    }
-    if (loginForm) {
-      createDummyHiddenInputIfNecessary(loginForm, 'IDToken0');
-      createDummyHiddenInputIfNecessary(loginForm, 'IDToken1');
-    }
-
-    var toopherTerminalId = docCookies.getItem("toopher_terminal_id");
-    if (toopherTerminalId === null) {
-      docCookies.setItem('toopher_terminal_id', (Math.random() + 1).toString(36).substring(2), Infinity, '/', '', true);
-    }
-
-    var status = docCookies.getItem("toopher_auth_status");
-    docCookies.removeItem("toopher_auth_status");
-    if (status === 'poll') {
-      startPolling(loginForm);
-    }
-
-  }
-
-  window.addEventListener("load", toopher_auth_manager(), false);
-})(window, document);
